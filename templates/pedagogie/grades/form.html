@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% load l10n %}
+{% block content %}
+<div class="kis-page"><div class="kis-page-header"><div><h1>Saisie des notes</h1><p>{{ enrollment.student }} — {{ enrollment.classe }} — {{ term.name }}</p></div><strong>Moyenne : {{ average|floatformat:"2" }}</strong></div>
+<div class="kis-card"><div class="kis-card-body"><form method="post">{% csrf_token %}<table class="kis-table"><thead><tr><th>Matière</th>{% if mode == 'F1' %}<th>Composition /10</th>{% else %}<th>Moyenne de classe A /20</th><th>Composition B /20</th>{% endif %}<th>Coefficient</th></tr></thead><tbody>
+{% for row in rows %}<tr><td>{{ row.name }}</td>{% if mode == 'F1' %}<td><input type="number" step="0.01" min="0" max="10" name="composition_{{ row.subject.id }}" value="{% if row.grade %}{{ row.grade.composition|default_if_none:''|unlocalize }}{% endif %}"></td>{% else %}<td><input type="number" step="0.01" min="0" max="20" name="class_average_{{ row.subject.id }}" value="{% if row.grade %}{{ row.grade.class_average|default_if_none:''|unlocalize }}{% endif %}"></td><td><input type="number" step="0.01" min="0" max="20" name="composition_{{ row.subject.id }}" value="{% if row.grade %}{{ row.grade.composition|default_if_none:''|unlocalize }}{% endif %}"></td>{% endif %}<td>{{ row.coefficient }}</td></tr>{% endfor %}
+</tbody></table><button class="kis-btn kis-btn-primary" style="margin-top:16px" type="submit">Enregistrer les notes</button></form></div></div></div>{% endblock %}

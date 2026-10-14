@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Connexion — KIS Kalanso{% endblock %}
+{% block public_content %}
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#F4F6F9;padding:24px">
+  <div class="kis-card" style="width:100%;max-width:430px">
+    <div class="kis-card-body" style="padding:36px">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="kis-alert kis-alert-{{ message.tags }}" role="alert">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+      <div style="text-align:center;margin-bottom:28px"><h1 style="color:#0F2D5C">KIS Kalanso</h1><p>Gestion intégrée de l'établissement scolaire</p></div>
+      <form method="post">{% csrf_token %}
+        {% for field in form %}
+          <div class="kis-form-group"><label>{{ field.label }}</label>{{ field }}{% for error in field.errors %}<div class="kis-text-danger">{{ error }}</div>{% endfor %}</div>
+        {% endfor %}
+        {% if form.non_field_errors %}<div class="kis-alert kis-alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+        <button class="kis-btn kis-btn-primary" style="width:100%" type="submit">Se connecter</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

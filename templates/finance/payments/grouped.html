@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}Encaissement — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div>
+      <a class="kis-btn" href="{% url 'payment_start' %}">← Choisir un autre élève</a>
+      <h1>Encaissement — {{ enrollment.student }}</h1>
+      <p>{{ enrollment.classe.display_name }} · {{ enrollment.school_year.name }}</p>
+    </div>
+    <a class="kis-btn" href="{% url 'family_statement_pdf' enrollment.id %}" target="_blank">Situation financière {% if family|length > 1 %}de la famille{% else %}PDF{% endif %}</a>
+  </div>
+
+  {% if family|length > 1 %}
+  <div class="kis-card" style="margin-bottom:16px;border-left:4px solid #1565C0"><div class="kis-card-body" style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
+    <div>
+      <strong>Même famille :</strong>
+      {% for m in family %}{% if m.pk != enrollment.pk %}{{ m.student }} ({{ m.classe.display_name }}){% if not forloop.last %}, {% endif %}{% endif %}{% endfor %}
+      <div class="kis-text-muted" style="font-size:13px">Reconnus par un téléphone de parent commun, ou les mêmes noms du père et de la mère.</div>
+    </div>
+    {% if with_family %}
+      <a class="kis-btn" href="{% url 'grouped_payment' enrollment.id %}">Ne régler que {{ enrollment.student.first_name }}</a>
+    {% else %}
+      <a class="kis-btn kis-btn-primary" href="{% url 'grouped_payment' enrollment.id %}?famille=1">Régler aussi les frères et sœurs</a>
+    {% endif %}
+  </div></div>
+  {% endif %}
+
+  {% for e in errors %}<div class="kis-alert kis-alert-danger" style="margin-bottom:10px">{{ e }}</div>{% endfor %}
+
+  <form method="post" class="kis-card"><div class="kis-card-body">
+    {% csrf_token %}{% if with_family %}<input type="hidden" name="famille" value="1">{% endif %}
+    <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:10px;padding:10px;background:#F3F6FA;border-radius:8px">
+      <div class="kis-form-group" style="margin:0"><label for="global-amount">Montant remis par le parent</label><input class="kis-input" id="global-amount" type="text" inputmode="numeric" style="width:160px" placeholder="Ex. 50 000"></div>
+      <button class="kis-btn" type="button" id="spread">Répartir automatiquement</button><strong id="spread-msg" class="kis-text-danger"></strong>
+      <span class="kis-text-muted" style="font-size:13px">Ordre : frais de l'année en cours d'abord, puis les dettes des années passées, de la plus ancienne à la plus récente. Vous pouvez ajuster ligne par ligne.</span>
+    </div>
+    <p class="kis-text-muted" style="margin-top:0">Cochez les frais réglés aujourd'hui. Le montant proposé est le reste à payer : modifiez-le pour une tranche ou un paiement partiel. Pour un frais détaillé en postes (inscription, manuel, uniformes…), cochez les postes réglés. Un seul reçu sera édité.</p>
+    <table class="kis-table">
+      <thead><tr><th style="width:36px"><input type="checkbox" id="check-all" title="Tout cocher"></th>{% if with_family %}<th>Élève</th>{% endif %}<th>Frais</th><th>Montant</th><th>Déjà payé</th><th>Reste</th><th>Montant versé</th></tr></thead>
+      <tbody>
+      {% for inv in invoices %}
+        <tr>
+          <td><input type="checkbox" name="invoice" value="{{ inv.id }}" class="pay-line" {% if inv.id|stringformat:"s" in chosen %}checked{% endif %}></td>
+          {% if with_family %}<td>{{ inv.enrollment.student }}<div class="kis-text-muted" style="font-size:12px">{{ inv.enrollment.classe.display_name }}</div></td>{% endif %}
+          <td><strong>{{ inv.label }}</strong>{% if inv.to_ventilate %} <a class="kis-badge" href="{% url 'invoice_ventilation' inv.id %}" title="Versements antérieurs à répartir sur les postes">À ventiler : {{ inv.to_ventilate|floatformat:"0g" }}</a>{% endif %}{% if inv.enrollment.school_year_id != current_year_id %} <span class="kis-badge" title="Dette d'une année passée">Dette {{ inv.enrollment.school_year.name }}</span>{% endif %}</td>
+          <td>{{ inv.total_amount|floatformat:"0" }}</td>
+          <td>{{ inv.paid_amount|floatformat:"0" }}</td>
+          <td>{{ inv.reste|floatformat:"0" }}</td>
+          <td><input class="kis-input pay-amount" type="text" inputmode="numeric" name="amount_{{ inv.id }}" value="{{ inv.reste|floatformat:'0' }}" data-max="{{ inv.reste|floatformat:'0' }}" style="width:130px"{% if inv.open_lines %} readonly title="Somme des postes cochés ci-dessous" data-has-lines="1"{% endif %}></td>
+        </tr>
+        {% for line in inv.open_lines %}
+        <tr class="kis-subline" data-parent="{{ inv.id }}">
+          <td></td>{% if with_family %}<td></td>{% endif %}
+          <td style="padding-left:28px"><label style="display:flex;gap:6px;align-items:center;font-weight:normal"><input type="checkbox" name="line" value="{{ line.id }}" class="pay-subline" {% if chosen_lines is None or line.id|stringformat:"s" in chosen_lines %}checked{% endif %}> {{ line.name }}</label></td>
+          <td class="kis-text-muted">{{ line.amount|floatformat:"0" }}</td>
+          <td class="kis-text-muted">{{ line.paid_amount|floatformat:"0" }}</td>
+          <td class="kis-text-muted">{{ line.reste|floatformat:"0" }}</td>
+          <td><input class="kis-input pay-subamount" type="text" inputmode="numeric" name="line_amount_{{ line.id }}" value="{{ line.reste|floatformat:'0' }}" data-max="{{ line.reste|floatformat:'0' }}" style="width:110px"></td>
+        </tr>
+        {% endfor %}
+      {% empty %}
+        <tr><td colspan="7">Aucune facture à régler.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% if invoices %}
+    <div class="kis-grid kis-grid-2" style="margin-top:14px">
+      <div class="kis-form-group"><label>Versé par</label><input class="kis-input" type="text" name="payer_name" value="{{ payer_name }}" placeholder="Nom de la personne qui paie"></div>
+      <div class="kis-form-group"><label>Commentaire (facultatif)</label><input class="kis-input" type="text" name="comment" value="{{ comment }}" placeholder="Ex. 1re tranche de scolarité"></div>
+    </div>
+    {% if "finance.manage" in kis_perms %}
+    <details style="margin-top:8px" {% if carryover %}open{% endif %}><summary style="cursor:pointer" class="kis-text-muted">Reprise : versements déjà reçus sur papier avant KIS</summary>
+      <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;padding:10px 0">
+        <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" name="carryover" value="1" id="carryover" {% if carryover %}checked{% endif %}> Ces montants ont déjà été reçus avant KIS (aucun reçu ne sera édité)</label>
+        <div class="kis-form-group" style="margin:0"><label for="carryover_date">Date du versement d'origine</label><input class="kis-input" type="date" id="carryover_date" name="carryover_date" value="{{ carryover_date }}"></div>
+      </div>
+    </details>
+    {% endif %}
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px">
+      <div style="font-size:18px">Total encaissé : <strong id="pay-total">0</strong> {{ currency }}</div>
+      <button class="kis-btn kis-btn-primary" type="submit" id="pay-submit">Enregistrer et éditer le reçu</button>
+    </div>
+    {% endif %}
+  </div></form>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+  const lines = Array.from(document.querySelectorAll('.pay-line'));
+  const total = document.getElementById('pay-total');
+  const submit = document.getElementById('pay-submit');
+  function amountOf(cb) {
+    const input = cb.closest('tr').querySelector('.pay-amount');
+    const v = parseInt((input.value || '').replace(/[\s ]/g, ''), 10);
+    return isNaN(v) ? 0 : v;
+  }
+  function refresh() {
+    let sum = 0, n = 0;
+    lines.forEach(function (cb) { if (cb.checked) { sum += amountOf(cb); n += 1; } });
+    if (total) total.textContent = sum.toLocaleString('fr-FR');
+    if (submit) submit.disabled = n === 0;
+  }
+  function subsOf(cb) { return Array.from(document.querySelectorAll('tr.kis-subline[data-parent="' + cb.value + '"]')); }
+  function num(v) { const n = parseInt((v || '').replace(/[\s\u00a0\u202f]/g, ''), 10); return isNaN(n) ? 0 : n; }
+  // Frais détaillé en postes : le montant du frais = somme des postes cochés.
+  function sumSubs(cb) {
+    const subs = subsOf(cb);
+    if (!subs.length) return;
+    let t = 0;
+    subs.forEach(function (tr) { const c = tr.querySelector('.pay-subline'); if (c.checked) t += num(tr.querySelector('.pay-subamount').value); });
+    cb.closest('tr').querySelector('.pay-amount').value = String(t);
+  }
+  lines.forEach(function (cb) {
+    cb.addEventListener('change', function () {
+      const subs = subsOf(cb);
+      if (cb.checked && subs.length && !num(cb.closest('tr').querySelector('.pay-amount').value)) {
+        subs.forEach(function (tr) { tr.querySelector('.pay-subline').checked = true; });
+        sumSubs(cb);
+      }
+      refresh();
+    });
+    const input = cb.closest('tr').querySelector('.pay-amount');
+    input.addEventListener('input', function () { cb.checked = true; refresh(); });
+    subsOf(cb).forEach(function (tr) {
+      const c = tr.querySelector('.pay-subline'), a = tr.querySelector('.pay-subamount');
+      const max = num(a.dataset.max);
+      c.addEventListener('change', function () { sumSubs(cb); cb.checked = num(input.value) > 0; refresh(); });
+      a.addEventListener('input', function () { if (num(a.value) > max) a.value = String(max); c.checked = true; sumSubs(cb); cb.checked = num(input.value) > 0; refresh(); });
+    });
+    sumSubs(cb);
+  });
+  const spread = document.getElementById('spread');
+  if (spread) spread.addEventListener('click', function () {
+    const raw = document.getElementById('global-amount').value || '';
+    let left = parseInt(raw.replace(/[\s\u00a0\u202f]/g, ''), 10) || 0;
+    lines.forEach(function (cb) {
+      const input = cb.closest('tr').querySelector('.pay-amount');
+      const max = parseInt(input.dataset.max, 10) || 0;
+      const part = Math.min(max, left);
+      left -= part;
+      input.value = part > 0 ? String(part) : String(max);
+      cb.checked = part > 0;
+      // Répartition dans les postes, dans l'ordre.
+      let rest = part;
+      subsOf(cb).forEach(function (tr) {
+        const c = tr.querySelector('.pay-subline'), a = tr.querySelector('.pay-subamount');
+        const m = num(a.dataset.max), p = Math.min(m, rest);
+        rest -= p;
+        a.value = p > 0 ? String(p) : String(m);
+        c.checked = p > 0;
+      });
+      if (part > 0) sumSubs(cb);
+    });
+    refresh();
+    const msg = document.getElementById('spread-msg');
+    if (msg) msg.textContent = left > 0 ? 'Le montant dépasse le total dû de ' + left.toLocaleString('fr-FR') + ' : à rendre ou à garder en avance.' : '';
+  });
+  const carry = document.getElementById('carryover');
+  function carryLabel() { if (submit && carry) submit.textContent = carry.checked ? 'Enregistrer la reprise (sans reçu)' : 'Enregistrer et éditer le reçu'; }
+  if (carry) { carry.addEventListener('change', carryLabel); carryLabel(); }
+  const all = document.getElementById('check-all');
+  if (all) all.addEventListener('change', function () { lines.forEach(function (cb) { cb.checked = all.checked; }); refresh(); });
+  refresh();
+})();
+</script>
+{% endblock %}

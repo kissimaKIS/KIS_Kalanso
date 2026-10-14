@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Accès refusé — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-card" style="max-width:640px;margin:40px auto">
+    <div class="kis-card-body" style="text-align:center;padding:32px">
+      <i data-lucide="shield-alert" style="width:48px;height:48px;color:#B42318"></i>
+      <h1 style="margin:12px 0 8px">Accès refusé</h1>
+      <p>{{ denied_message }}</p>
+      <p class="kis-text-muted">Connecté en tant que <strong>{{ request.user.get_full_name|default:request.user.username }}</strong> — {{ kis_role_label }}</p>
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:16px">
+        {% if "dashboard.view" in kis_perms %}<a class="kis-btn kis-btn-primary" href="{% url 'dashboard' %}">Retour au tableau de bord</a>{% endif %}
+        <a class="kis-btn" href="{% url 'logout' %}">Se déconnecter</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block public_content %}
+<div style="max-width:520px;margin:60px auto;text-align:center"><h1>Accès refusé</h1><p>{{ denied_message }}</p><a class="kis-btn" href="{% url 'login' %}">Se connecter</a></div>
+{% endblock %}

@@ -1,0 +1,2 @@
+{% extends "base.html" %}
+{% block content %}<div class="kis-page"><div class="kis-page-header"><h1>Copier les matières — {{ target_level.name }}</h1></div><form method="post" class="kis-card"><div class="kis-card-body">{% csrf_token %}{{ form.as_p }}<button class="kis-btn kis-btn-primary">Copier les matières</button> <a class="kis-btn" href="{% url 'level_subjects' target_level.pk %}">Annuler</a></div></form></div>{% endblock %}

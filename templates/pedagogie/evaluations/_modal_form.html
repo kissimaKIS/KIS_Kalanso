@@ -1,0 +1,21 @@
+<div class="kis-modal-form">
+  <h2>Nouvelle évaluation</h2>
+  {% if form.non_field_errors %}<div class="kis-alert kis-alert-error">{{ form.non_field_errors }}</div>{% endif %}
+  <form method="post" action="{% url 'evaluation_create' %}" data-modal-form data-modal-reload="true">
+    {% csrf_token %}
+    <div class="kis-form-grid">
+      <div class="kis-form-field"><label for="id_evaluation_classe">Classe</label>{{ form.classe }}{{ form.classe.errors }}</div>
+      <div class="kis-form-field"><label for="id_term">Période</label>{{ form.term }}{{ form.term.errors }}</div>
+      <div class="kis-form-field"><label for="id_name">Évaluation</label>{{ form.name }}{{ form.name.errors }}</div>
+      <div class="kis-form-field"><label for="id_nature">Nature</label>{{ form.nature }}{{ form.nature.errors }}</div>
+      <div class="kis-form-field"><label for="id_date">Date</label>{{ form.date }}{{ form.date.errors }}</div>
+    </div>
+    <div class="kis-form-help" style="margin-top:16px">
+      Les matières de cette évaluation sont celles prévues au programme de la classe. Elles seront disponibles automatiquement lors de la saisie des notes.
+    </div>
+    <div class="kis-alert kis-alert-info" style="margin-top:10px">
+      Ceci est une évaluation de suivi (devoir, interrogation, composition…), quelle que soit la « Nature » choisie. Elle <strong>n'apparaît pas sur le bulletin</strong> : le bulletin utilise uniquement l'écran <strong>« Notes du bulletin »</strong>, sur la fiche de la classe.
+    </div>
+    <div style="margin-top:18px"><button type="submit" class="kis-btn kis-btn-primary">Enregistrer</button></div>
+  </form>
+</div>

@@ -1,0 +1,20 @@
+<form method="post" action="{{ action_url }}" enctype="multipart/form-data" data-modal-form data-modal-reload="true">
+  {% csrf_token %}
+  {% if form.errors %}<div class="kis-alert kis-alert-error"><strong>Impossible d'enregistrer l'enseignant.</strong> Vérifiez les champs signalés ci-dessous.</div>{% endif %}
+  <h3>Identité</h3>
+  <div class="kis-grid kis-grid-2">
+    {% for field in form %}{% if field.name in 'employee_number first_name last_name phone email address date_of_birth photo hire_date is_active' %}<div class="kis-form-group"><label>{{ field.label }}</label>{{ field }}{{ field.errors }}</div>{% endif %}{% endfor %}
+  </div>
+  <h3>Statut et profil pédagogique</h3>
+  <div class="kis-grid kis-grid-2">
+    {% for field in form %}{% if field.name in 'contract_type pedagogical_profile specialty qualification' %}<div class="kis-form-group"><label>{{ field.label }}</label>{{ field }}{{ field.errors }}</div>{% endif %}{% endfor %}
+  </div>
+  <h3>Charge et rémunération</h3>
+  <div class="kis-grid kis-grid-2">
+    {% for field in form %}{% if field.name in 'monthly_salary weekly_obligation complementary_hours_allowed hourly_rate hours_cap contract_start_date contract_end_date' %}<div class="kis-form-group"><label>{{ field.label }}</label>{{ field }}{{ field.errors }}</div>{% endif %}{% endfor %}
+  </div>
+  <div class="kis-modal-actions">
+    <button type="button" class="kis-btn" data-modal-close>Annuler</button>
+    <button type="submit" class="kis-btn kis-btn-primary">Enregistrer</button>
+  </div>
+</form>

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div><h1>{{ title }}</h1><p>{{ student }}{% if student.matricule %} · matricule {{ student.matricule }}{% endif %}</p></div>
+    
+  </div>
+  <div class="kis-card"><div class="kis-card-body">
+    <div class="kis-alert kis-alert-info" style="margin-bottom:16px">
+      {% if kind == "annuler-paiement" %}Paiement <strong>{{ obj.receipt_number }}</strong> du {{ obj.date|date:"d/m/Y" }} — {{ obj.invoice.fee_type.name }} ({{ obj.invoice.enrollment.school_year.name }}) : <strong>{{ obj.amount|floatformat:"0g" }}</strong>
+      {% elif kind == "supprimer-facture" %}Facture « {{ obj.fee_type.name }} » ({{ obj.enrollment.school_year.name }}) : total {{ obj.total_amount|floatformat:"0g" }}, payé {{ obj.paid_amount|floatformat:"0g" }}
+      {% elif kind == "changer-classe" or kind == "supprimer-inscription" %}Inscription {{ obj.school_year.name }} en <strong>{{ obj.classe.display_name }}</strong>
+      {% else %}Fiche élève et toutes ses inscriptions{% endif %}
+    </div>
+    {% if error %}<div class="kis-alert kis-alert-danger">{{ error }}</div>{% endif %}
+    <form method="{% if kind == 'changer-classe' and not new_classe %}get{% else %}post{% endif %}">
+      {% if kind == "changer-classe" %}
+        <div class="kis-form-group"><label for="classe">Nouvelle classe</label>
+          <select id="classe" name="classe" class="kis-input" onchange="this.form.method='get';this.form.submit()">
+            <option value="">— Choisir —</option>
+            {% for c in classes %}<option value="{{ c.id }}" {% if new_classe and new_classe.id == c.id %}selected{% endif %}>{{ c.display_name }}</option>{% endfor %}
+          </select>
+        </div>
+      {% endif %}
+      {% if kind != "changer-classe" or new_classe %}
+        {% csrf_token %}
+        <h3 style="margin:12px 0 6px">Ce qui va se passer</h3>
+        <ul>{% for l in lines %}<li>{{ l }}</li>{% endfor %}</ul>
+        {% if blockers %}
+          <div class="kis-alert kis-alert-warning"><strong>Correction impossible pour l'instant :</strong><ul style="margin:6px 0 0">{% for b in blockers %}<li>{{ b }}</li>{% endfor %}</ul></div>
+        {% else %}
+          <div class="kis-form-group"><label for="reason">Motif (obligatoire)</label>
+            <textarea id="reason" name="reason" class="kis-input" rows="2" required minlength="3" placeholder="Ex. facture créée par erreur, mauvaise classe à l'inscription…">{{ reason }}</textarea></div>
+          <div style="display:flex;gap:8px;margin-top:12px"><a class="kis-btn" href="{% url 'student_detail' student.id %}">Annuler</a>
+            <button class="kis-btn kis-btn-danger" type="submit">Confirmer : {{ title|lower }}</button></div>
+        {% endif %}
+      {% endif %}
+    </form>
+  </div></div>
+</div>
+{% endblock %}

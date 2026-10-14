@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div>
+      <h1>Pointage du personnel</h1>
+      <p>Enseignants et autre personnel, pour une journée. Sert de base au calcul automatique des salaires horaires. Contrairement aux présences élèves, une ligne déjà enregistrée reste modifiable.</p>
+    </div>
+  </div>
+
+  <div class="kis-card" style="margin-bottom:20px">
+    <div class="kis-card-body">
+      <form method="get" class="kis-form-row" style="align-items:end">
+        <div style="min-width:190px">
+          <label for="staff-attendance-date">Date</label>
+          <input id="staff-attendance-date" type="date" name="date" value="{{ selected_date|date:'Y-m-d' }}">
+        </div>
+        <div>
+          <button class="kis-btn kis-btn-primary" type="submit">Charger la date</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {% if not school_year %}
+    <div class="kis-alert kis-alert-error">Aucune année scolaire active.</div>
+  {% else %}
+  <form method="post" class="kis-card">
+    {% csrf_token %}
+    <input type="hidden" name="date" value="{{ selected_date|date:'Y-m-d' }}">
+    <div class="kis-card-header"><h2>{{ selected_date|date:'d/m/Y' }}</h2></div>
+    <div class="kis-card-body" style="overflow-x:auto">
+      <table class="kis-table">
+        <thead><tr><th>Personnel</th><th>Statut</th><th>Entrée</th><th>Sortie</th><th>Retard (min)</th><th>Observation</th></tr></thead>
+        <tbody>
+        {% for row in rows %}
+          <tr>
+            <td><strong>{{ row.label }}</strong><br><small>{{ row.sub }}</small></td>
+            <td>
+              <select name="status_{{ row.prefix }}">
+                <option value="PRESENT" {% if row.record.status == "PRESENT" or not row.record %}selected{% endif %}>Présent</option>
+                <option value="ABSENT" {% if row.record.status == "ABSENT" %}selected{% endif %}>Absent</option>
+                <option value="LATE" {% if row.record.status == "LATE" %}selected{% endif %}>Retard</option>
+              </select>
+            </td>
+            <td><input type="time" name="entry_time_{{ row.prefix }}" value="{{ row.record.entry_time|time:'H:i' }}" style="width:110px"></td>
+            <td><input type="time" name="exit_time_{{ row.prefix }}" value="{{ row.record.exit_time|time:'H:i' }}" style="width:110px"></td>
+            <td><input type="number" min="1" name="late_minutes_{{ row.prefix }}" value="{{ row.record.late_minutes|default_if_none:'' }}" style="width:80px"></td>
+            <td><input type="text" name="note_{{ row.prefix }}" value="{{ row.record.note|default:'' }}" style="width:160px"></td>
+          </tr>
+        {% empty %}<tr><td colspan="6">Aucun personnel actif.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+      <button class="kis-btn kis-btn-primary" style="margin-top:16px" type="submit">Enregistrer le pointage</button>
+    </div>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

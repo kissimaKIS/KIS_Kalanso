@@ -1,0 +1,62 @@
+{% load static %}
+<aside class="kis-sidebar">
+  <div class="kis-sidebar-header">
+    <img src="{% static 'images/logo.png' %}" alt="KIS Kalanso" class="kis-logo">
+    <div class="kis-sidebar-identity">
+      <div class="kis-sidebar-title">KIS Kalanso</div>
+      <div class="kis-sidebar-subtitle">{{ school.name|default:"Gestion scolaire" }}</div>
+    </div>
+  </div>
+
+  <nav class="kis-sidebar-nav" aria-label="Navigation principale">
+    <ul class="kis-sidebar-menu">
+      {% if "dashboard.view" in kis_perms %}
+      <li><a href="{% url 'dashboard' %}" class="kis-sidebar-main-link {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'dashboard_page' %}active{% endif %}">
+        <i data-lucide="layout-dashboard"></i><span>Tableau de bord</span>
+      </a></li>
+      {% endif %}
+
+      {% if "students.view" in kis_perms %}
+      <li><a href="{% if "students.manage" in kis_perms %}{% url 'enrollment_create' %}{% else %}{% url 'classe_list' %}{% endif %}" class="kis-sidebar-main-link {% if request.resolver_match.url_name == 'enrollment_create' or request.resolver_match.url_name == 'classe_list' or request.resolver_match.url_name == 'add_classe' or request.resolver_match.url_name == 'classe_detail' or request.resolver_match.url_name == 'add_student' or request.resolver_match.url_name == 'import_students' or request.resolver_match.url_name == 'student_detail' or request.resolver_match.url_name == 'student_list' %}active{% endif %}">
+        <i data-lucide="school"></i><span>Scolarité</span>
+      </a></li>
+      {% endif %}
+
+      {% if "personnel.manage" in kis_perms or "salaries.manage" in kis_perms %}
+      <li><a href="{% if "personnel.manage" in kis_perms %}{% url 'teacher_list' %}{% else %}{% url 'teacher_payment_list' %}{% endif %}" class="kis-sidebar-main-link {% if request.resolver_match.url_name == 'teacher_list' or request.resolver_match.url_name == 'permanent_annual_statement' or request.resolver_match.url_name == 'hourly_monthly_statement' or request.resolver_match.url_name == 'teacher_pdf' or request.resolver_match.url_name == 'teacher_payment_list' or request.resolver_match.url_name == 'teacher_payment_create' or request.resolver_match.url_name == 'teacher_payment_pdf' or request.resolver_match.url_name == 'teacher_create' or request.resolver_match.url_name == 'other_personnel_list' or request.resolver_match.url_name == 'other_personnel_pdf' or request.resolver_match.url_name == 'other_personnel_create' or request.resolver_match.url_name == 'other_personnel_edit' or request.resolver_match.url_name == 'other_personnel_payment_list' or request.resolver_match.url_name == 'other_personnel_payment_create' or request.resolver_match.url_name == 'other_personnel_payment_pdf' %}active{% endif %}">
+        <i data-lucide="users"></i><span>Personnel</span>
+      </a></li>
+      {% endif %}
+
+      {% if "grades.enter" in kis_perms or "bulletins.print" in kis_perms or "teachings.view" in kis_perms %}
+      <li><a href="{% url 'term_list' %}" class="kis-sidebar-main-link {% if request.resolver_match.url_name == 'teaching_list' or request.resolver_match.url_name == 'teaching_create' or request.resolver_match.url_name == 'teaching_delete' or request.resolver_match.url_name == 'term_list' or request.resolver_match.url_name == 'term_create' or request.resolver_match.url_name == 'evaluation_create' or request.resolver_match.url_name == 'evaluation_results' or request.resolver_match.url_name == 'evaluation_subjects' or request.resolver_match.url_name == 'grade_entry' or request.resolver_match.url_name == 'class_results' or request.resolver_match.url_name|slice:':7' == 'mobile_' %}active{% endif %}">
+        <i data-lucide="book-open"></i><span>Pédagogie</span>
+      </a></li>
+      {% endif %}
+
+      {% if "school_life.manage" in kis_perms %}
+      <li><a href="{% url 'discipline_list' %}" class="kis-sidebar-main-link {% if request.resolver_match.url_name == 'attendance_list' or request.resolver_match.url_name == 'attendance_mark' or request.resolver_match.url_name == 'attendance_week_pdf' or request.resolver_match.url_name == 'discipline_list' or request.resolver_match.url_name == 'discipline_create' %}active{% endif %}">
+        <i data-lucide="heart-pulse"></i><span>Vie scolaire</span>
+      </a></li>
+      {% endif %}
+
+      {% if "finance.manage" in kis_perms or "finance.collect" in kis_perms or "budget.manage" in kis_perms %}
+      <li><a href="{% if "finance.manage" in kis_perms %}{% url 'fee_type_list' %}{% elif "finance.collect" in kis_perms %}{% url 'payment_list' %}{% else %}{% url 'budget_list' %}{% endif %}" class="kis-sidebar-main-link {% if request.resolver_match.url_name == 'fee_type_list' or request.resolver_match.url_name == 'fee_type_create' or request.resolver_match.url_name == 'fee_type_create_for_class' or request.resolver_match.url_name == 'invoice_list' or request.resolver_match.url_name == 'invoice_create' or request.resolver_match.url_name == 'payment_list' or request.resolver_match.url_name == 'payment_start' or request.resolver_match.url_name == 'payment_create' or request.resolver_match.url_name == 'receipt_pdf' or request.resolver_match.url_name == 'debt_report' or request.resolver_match.url_name == 'budget_list' or request.resolver_match.url_name == 'budget_create' or request.resolver_match.url_name == 'budget_pdf' or request.resolver_match.url_name == 'option_lists' or request.resolver_match.url_name == 'family_list' or request.resolver_match.url_name == 'arrears_import' or request.resolver_match.url_name == 'arrears_quick' %}active{% endif %}">
+        <i data-lucide="wallet-cards"></i><span>Finance</span>
+      </a></li>
+      {% endif %}
+
+      {% if "communication.manage" in kis_perms %}
+      <li><a href="{% url 'announcement_list' %}" class="kis-sidebar-main-link {% if request.resolver_match.url_name == 'announcement_list' or request.resolver_match.url_name == 'announcement_create' or request.resolver_match.url_name == 'announcement_delete' or request.resolver_match.url_name == 'document_list' or request.resolver_match.url_name == 'document_create' or request.resolver_match.url_name == 'document_delete' %}active{% endif %}">
+        <i data-lucide="files"></i><span>Communication &amp; documents</span>
+      </a></li>
+      {% endif %}
+
+      {% if "school.configure" in kis_perms or "users.manage" in kis_perms or "pedagogy.manage" in kis_perms and school_year %}
+      <li><a href="{% if "school.configure" in kis_perms %}{% url 'school_year_list' %}{% elif "users.manage" in kis_perms %}{% url 'user_list' %}{% else %}{% url 'school_year_catalog' school_year.id %}{% endif %}" class="kis-sidebar-main-link {% if request.resolver_match.url_name == 'school_year_list' or request.resolver_match.url_name == 'school_year_create' or request.resolver_match.url_name == 'school_year_activate' or request.resolver_match.url_name == 'school_year_close' or request.resolver_match.url_name == 'school_edit' or request.resolver_match.url_name == 'user_list' or request.resolver_match.url_name == 'user_create' or request.resolver_match.url_name == 'user_edit' or request.resolver_match.url_name == 'user_toggle' or request.resolver_match.url_name == 'school_year_catalog' or request.resolver_match.url_name|slice:':7' == 'backup_' %}active{% endif %}">
+        <i data-lucide="settings"></i><span>Administration</span>
+      </a></li>
+      {% endif %}
+    </ul>
+  </nav>
+</aside>

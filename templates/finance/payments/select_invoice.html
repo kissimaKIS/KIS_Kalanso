@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Nouvel encaissement — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page"><div class="kis-page-header"><div><h1>Nouvel encaissement</h1><p>{{ school_year.name }} — sélectionner la dette à régler.</p></div></div>
+<div class="kis-card"><div class="kis-card-body">
+<form method="get" style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;margin-bottom:18px"><div class="kis-form-group" style="min-width:280px;flex:1"><label class="kis-label">Rechercher un élève ou un frais</label><input type="search" name="q" value="{{ search }}" placeholder="Nom, prénom, matricule ou frais"></div><button class="kis-btn" type="submit">Rechercher</button>{% if search %}<a class="kis-btn" href="{% url 'payment_start' %}">Effacer</a>{% endif %}</form>
+<form method="post">{% csrf_token %}<div class="kis-form-group"><label for="invoice">Élève / frais</label><select id="invoice" name="invoice" required><option value="">Sélectionner</option>{% for invoice in invoices %}<option value="{{ invoice.id }}">{{ invoice.enrollment.student }} — {{ invoice.fee_type.name }} — reste {{ invoice.reste|floatformat:"0" }} FCFA</option>{% empty %}<option value="">Aucune facture à régler</option>{% endfor %}</select>{% if truncated %}<small class="kis-form-help">Seules les 100 premières dettes sont proposées : précisez le nom ou le matricule de l'élève.</small>{% endif %}</div><button class="kis-btn kis-btn-primary" {% if not invoices %}disabled{% endif %}>Continuer</button></form>
+</div></div></div>
+{% endblock %}

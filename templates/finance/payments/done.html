@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Encaissement enregistré — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-card" style="max-width:760px;margin:24px auto;border-top:4px solid #198754"><div class="kis-card-body">
+    <h1 style="margin-top:0">✔ Encaissement enregistré</h1>
+    <p>Reçu n° <strong>{{ receipt_number }}</strong> — total <strong>{{ total|floatformat:"0" }} {{ currency }}</strong>{% if batch and batch.payer_name %} · versé par {{ batch.payer_name }}{% endif %}</p>
+    <table class="kis-table" style="margin:12px 0">
+      <thead><tr><th>Élève</th><th>Frais</th><th>Versé</th><th>Reste</th></tr></thead>
+      <tbody>{% for p in lines %}<tr><td>{{ p.invoice.enrollment.student }}</td><td>{{ p.invoice.label }}</td><td>{{ p.amount|floatformat:"0" }}</td><td>{{ p.invoice.reste|floatformat:"0" }}</td></tr>{% endfor %}</tbody>
+    </table>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <a class="kis-btn kis-btn-primary" href="{{ receipt_url }}" target="_blank" rel="noopener">Imprimer le reçu</a>
+      <a class="kis-btn" href="{{ receipt_url }}?exemplaires=2" target="_blank" rel="noopener" title="Exemplaire parent et exemplaire établissement côte à côte sur une feuille A4">2 exemplaires sur une feuille</a>
+      {% if whatsapp_url %}<a class="kis-btn kis-btn-whatsapp" data-wa data-wa-pdf="{{ receipt_url }}" data-wa-pdf-name="recu_{{ receipt_number }}.pdf" href="{{ whatsapp_url }}" target="_blank" rel="noopener" title="Ouvre WhatsApp avec le message prêt ; le reçu PDF est téléchargé pour le joindre">Envoyer au parent par WhatsApp</a>{% endif %}
+      <a class="kis-btn" href="{% url 'payment_start' %}">Nouvel encaissement</a>
+      {% if enrollment %}<a class="kis-btn" href="{% url 'student_detail' enrollment.student_id %}">Fiche de l'élève</a>{% if not enrollment.school_year.is_archive %}<a class="kis-btn" href="{% url 'classe_detail' enrollment.classe_id %}">Classe {{ enrollment.classe.display_name }}</a>{% endif %}{% endif %}
+      <a class="kis-btn" href="{% url 'payment_list' %}">Journal des encaissements</a>
+    </div>
+    <p class="kis-text-muted" style="margin-bottom:0;font-size:13px">Le reçu s'ouvre dans une fenêtre séparée : fermez-la après impression, KIS Kalanso reste ouvert.</p>
+  </div></div>
+</div>
+{% endblock %}

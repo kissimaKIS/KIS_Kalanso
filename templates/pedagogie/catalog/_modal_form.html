@@ -1,0 +1,17 @@
+<form method="post" action="{{ action_url }}" data-modal-form data-modal-reload="true">
+  {% csrf_token %}
+  {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
+  {% if form.non_field_errors %}<div class="kis-alert kis-alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+  {% for f in form %}
+    <div class="kis-form-group{% if f.errors %} kis-form-group-error{% endif %}">
+      <label class="kis-label" for="{{ f.id_for_label }}">{{ f.label }}{% if f.field.required %} *{% endif %}</label>
+      {{ f }}
+      {% if f.help_text %}<small class="kis-form-help">{{ f.help_text }}</small>{% endif %}
+      {% for error in f.errors %}<small class="kis-text-danger">{{ error }}</small>{% endfor %}
+    </div>
+  {% endfor %}
+  <div class="kis-modal-actions">
+    <button type="button" class="kis-btn" data-modal-close>Annuler</button>
+    <button type="submit" class="kis-btn kis-btn-primary">{{ submit_label|default:"Enregistrer" }}</button>
+  </div>
+</form>

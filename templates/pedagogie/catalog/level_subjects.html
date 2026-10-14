@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Matières — {{ level.name }}{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div><h1>Matières — {{ level.name }}</h1></div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button type="button" class="kis-btn kis-btn-primary" data-modal-url="{% url 'level_subjects' level.pk %}?modal=1" data-modal-title="Ajouter une matière">+ Ajouter une matière</button>
+      {% if level.school_type == "preschool" %}<button type="button" class="kis-btn" data-modal-url="{% url 'preschool_subjects_copy' level.pk %}?modal=1" data-modal-title="Copier les matières">Copier les matières</button>{% endif %}
+      
+    </div>
+  </div>
+  <div class="kis-card">
+    <div class="kis-card-header"><h2 style="margin:0">Matières</h2></div>
+    <div class="kis-card-body">
+      <table class="kis-table">
+        <thead><tr><th>Ordre</th><th>Matière</th><th>Volume</th><th>Coef.</th><th>Statut</th><th>État</th><th>Action</th></tr></thead>
+        <tbody>
+        {% for link in links %}
+          <tr>
+            <td>{{ link.order }}</td><td><strong>{{ link.name }}</strong></td><td>{{ link.weekly_hours }} h/semaine</td><td>{{ link.coefficient }}</td>
+            <td>{{ link.get_role_display }}{% if not link.is_required %} · Optionnelle{% endif %}</td>
+            <td>{% if link.is_active %}<span class="kis-badge kis-badge-success">Active</span>{% else %}<span class="kis-badge">Inactive</span>{% endif %}</td>
+            <td>
+              <button type="button" class="kis-btn kis-btn-sm" data-modal-url="{% url 'level_subject_edit' link.id %}?next={% url 'level_subjects' level.pk %}" data-modal-title="Modifier — {{ link.name }}">Modifier</button>
+              <form method="post" action="{% url 'level_subject_toggle' link.id %}" style="display:inline">{% csrf_token %}<button class="kis-btn kis-btn-sm" type="submit">{% if link.is_active %}Désactiver{% else %}Activer{% endif %}</button></form>
+            </td>
+          </tr>
+        {% empty %}<tr><td colspan="7">Aucune matière configurée.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,236 @@
+
+
+/* ==========================================================
+   PREMIÈRE INSTALLATION — COMPTE ADMINISTRATEUR
+   ========================================================== */
+
+.kis-installation{
+    min-height:100vh;
+    padding:48px 24px 56px;
+    background:
+        radial-gradient(circle at 8% 0%, rgba(21,101,192,.12), transparent 30%),
+        linear-gradient(180deg,#f8fafc 0%,var(--kis-bg) 100%);
+}
+
+.kis-installation-shell{
+    width:100%;
+    max-width:980px;
+    margin:0 auto;
+}
+
+.kis-installation-header{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:28px;
+    margin-bottom:24px;
+}
+
+.kis-installation-brand{
+    display:flex;
+    align-items:center;
+    gap:18px;
+}
+
+.kis-installation-logo{
+    width:72px;
+    height:72px;
+    flex:0 0 72px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:16px;
+    background:#fff;
+    border:1px solid var(--kis-border);
+    box-shadow:var(--kis-shadow-sm);
+    overflow:hidden;
+}
+
+.kis-installation-logo img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+}
+
+.kis-installation-brand h1{
+    margin:0;
+    font-size:1.8rem;
+}
+
+.kis-installation-brand p{
+    margin:4px 0 0;
+}
+
+.kis-installation-step{
+    padding:10px 14px;
+    border:1px solid var(--kis-border);
+    border-radius:var(--kis-radius);
+    background:#fff;
+    text-align:right;
+    box-shadow:var(--kis-shadow-sm);
+}
+
+.kis-installation-step span{
+    display:block;
+    color:var(--kis-primary-hover);
+    font-size:.72rem;
+    font-weight:800;
+    letter-spacing:.1em;
+}
+
+.kis-installation-step strong{
+    color:var(--kis-text);
+    font-size:.9rem;
+}
+
+.kis-installation-card{
+    background:#fff;
+    border:1px solid var(--kis-border);
+    border-radius:var(--kis-radius-lg);
+    box-shadow:var(--kis-shadow-lg);
+    overflow:hidden;
+}
+
+.kis-installation-card-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    padding:24px 30px;
+    border-bottom:1px solid var(--kis-border);
+}
+
+.kis-installation-card-header h2{
+    margin:0 0 4px;
+    font-size:1.2rem;
+}
+
+.kis-installation-card-header p{
+    margin:0;
+    font-size:.9rem;
+}
+
+.kis-installation-badge{
+    padding:7px 12px;
+    border-radius:999px;
+    background:rgba(21,101,192,.09);
+    color:var(--kis-primary-hover);
+    font-size:.78rem;
+    font-weight:700;
+    white-space:nowrap;
+}
+
+.kis-installation-form{
+    padding:30px;
+}
+
+.kis-installation-form .kis-form-grid-2{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:0 24px;
+}
+
+.kis-installation-form .kis-form-group{
+    margin-bottom:20px;
+}
+
+.kis-required{
+    color:var(--kis-danger);
+}
+
+.kis-optional{
+    margin-left:6px;
+    color:var(--kis-text-muted);
+    font-size:.75rem;
+    font-weight:400;
+}
+
+.kis-form-help{
+    display:block;
+    margin-top:6px;
+    color:var(--kis-text-muted);
+    font-size:.78rem;
+}
+
+.kis-installation-notice{
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    margin-top:4px;
+    padding:14px 16px;
+    border-radius:var(--kis-radius);
+    background:#f8fafc;
+    border:1px solid var(--kis-border);
+    color:var(--kis-text-muted);
+    font-size:.86rem;
+}
+
+.kis-installation-notice strong{
+    color:var(--kis-primary);
+}
+
+.kis-installation-actions{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    margin-top:24px;
+    padding-top:22px;
+    border-top:1px solid var(--kis-border);
+}
+
+.kis-form-required-note{
+    color:var(--kis-text-muted);
+    font-size:.8rem;
+}
+
+.kis-installation-actions .kis-btn{
+    min-width:190px;
+    justify-content:center;
+}
+
+.kis-installation-footer{
+    margin-top:18px;
+    text-align:center;
+    color:var(--kis-text-muted);
+    font-size:.78rem;
+}
+
+@media (max-width:760px){
+    .kis-installation{
+        padding:28px 14px 44px;
+    }
+
+    .kis-installation-header{
+        align-items:flex-start;
+        flex-direction:column;
+    }
+
+    .kis-installation-step{
+        width:100%;
+        text-align:left;
+    }
+
+    .kis-installation-card-header{
+        align-items:flex-start;
+        flex-direction:column;
+        padding:22px 20px;
+    }
+
+    .kis-installation-form{
+        padding:22px 20px 24px;
+    }
+
+    .kis-installation-form .kis-form-grid-2{
+        grid-template-columns:1fr;
+    }
+
+    .kis-installation-actions{
+        align-items:stretch;
+        flex-direction:column;
+    }
+
+    .kis-installation-actions .kis-btn{
+        width:100%;
+    }
+}

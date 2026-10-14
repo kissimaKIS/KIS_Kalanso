@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}{{ classe.display_name }} — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div><h1>{{ classe.display_name }}</h1>{% if classe.pedagogical_track %}<p>{{ classe.pedagogical_track.name }}</p>{% endif %}</div>
+    <div><a class="kis-btn kis-btn-primary" href="{% url 'add_student' classe.id %}">Ajouter élève</a><a class="kis-btn" href="{% url 'import_students' classe.id %}">Importer Excel</a><a class="kis-btn" href="{% url 'attendance_list' %}?classe={{ classe.id }}">Présences</a><a class="kis-btn" href="{% url 'student_list_pdf' %}?classe={{ classe.id }}" target="_blank">Liste de la classe (PDF)</a><a class="kis-btn" href="{% url 'cartes_identite_classe_pdf' classe.id %}" target="_blank">Cartes d'identité (classe)</a></div>
+  </div>
+  {% if exam_info.is_exam %}<div class="kis-alert kis-alert-info">Classe d'examen : {{ exam_info.exam }}</div>{% endif %}
+  <div class="kis-card"><div class="kis-card-body"><table class="kis-table"><thead><tr><th>#</th><th>Élève</th><th>Matricule</th><th>Naissance</th><th>Téléphone parent / responsable</th></tr></thead><tbody>
+  {% for e in students %}<tr><td>{{ forloop.counter }}</td><td><a href="{% url 'student_detail' e.student.id %}"><strong>{{ e.student.first_name }} {{ e.student.last_name }}</strong></a></td><td>{{ e.student.matricule|default:"—" }}</td><td>{{ e.student.date_of_birth|date:"d/m/Y"|default:"—" }}</td><td>{{ e.student.responsible_phone|default:"—" }}</td></tr>{% empty %}<tr><td colspan="5">Aucun élève inscrit.</td></tr>{% endfor %}
+  </tbody></table></div></div>
+  <details class="kis-card mb-4"><summary class="kis-card-header" style="cursor:pointer"><strong>Programme pédagogique</strong><span class="text-muted small">Afficher / masquer</span></summary><div class="kis-card-body">
+    <div class="d-flex justify-content-between align-items-center mb-3"><div><div class="text-muted small">Programme hérité du niveau{% if classe.pedagogical_track %} / {{ classe.pedagogical_track.name }}{% endif %}</div></div>{% if program_validated %}<span class="badge bg-success">Validé</span>{% else %}<span class="badge bg-warning text-dark">À vérifier</span>{% endif %}</div>
+    {% if not program_validated %}<div class="kis-alert kis-alert-info mb-3">Le programme affiché provient du référentiel configuré pour cette année. Il n'est pas encore validé par l'administrateur.</div>{% endif %}
+    {% if program_links %}<div class="table-responsive"><table class="kis-table"><thead><tr><th>Matière</th><th>Volume</th><th>Coeff.</th><th>Statut</th><th>Obligatoire</th></tr></thead><tbody>{% for link in program_links %}<tr><td><strong>{{ link.name }}</strong></td><td>{{ link.weekly_hours }} h/semaine</td><td>{{ link.coefficient }}</td><td>{{ link.get_role_display }}</td><td>{% if link.is_required %}Oui{% else %}Optionnelle{% endif %}</td></tr>{% endfor %}</tbody></table></div>{% else %}<p class="text-muted mb-0">Aucune matière n'est encore configurée pour ce programme.</p>{% endif %}
+  </div></details>
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div>
+      <h1>Bulletin non officiel — {{ classe.display_name }}</h1>
+      <p>{{ term.name }} · Récapitulatif des évaluations ponctuelles à remettre aux parents</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"></div>
+  </div>
+
+  <div class="kis-alert kis-alert-secondary" style="margin-bottom:16px">
+    Ce document reprend les notes des <strong>évaluations ponctuelles</strong> (interrogations, devoirs…) de la
+    période — pas les notes du bulletin officiel. Il est pensé comme un suivi informel à remettre aux parents entre
+    deux bulletins ; il n'a aucune valeur officielle et n'intervient pas dans le calcul de la moyenne générale.
+  </div>
+
+  {% if not has_any %}
+    <div class="kis-alert kis-alert-warning" style="margin-bottom:16px">
+      Aucune note d'évaluation ponctuelle n'a encore été saisie pour cette classe et cette période.
+      Utilisez « Saisir (suivi, hors bulletin) » depuis la page Évaluations pour en enregistrer.
+    </div>
+  {% else %}
+    <div class="kis-card" style="margin-bottom:16px">
+      <div class="kis-card-body">
+        <a class="kis-btn kis-btn-primary" target="_blank" href="{% url 'class_ponctuel_pdf' classe.id term.id %}">Imprimer pour toute la classe</a>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="kis-card">
+    <div class="kis-card-body">
+      <h2 style="margin-top:0">Élèves de la classe</h2>
+      {% if rows %}
+      <div style="overflow-x:auto">
+        <table class="kis-table" style="width:100%">
+          <thead>
+            <tr><th>#</th><th>Élève</th><th>Notes ponctuelles saisies</th><th style="text-align:right">Actions</th></tr>
+          </thead>
+          <tbody>
+            {% for row in rows %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td><strong>{{ row.enrollment.student.first_name }} {{ row.enrollment.student.last_name }}</strong></td>
+              <td>{{ row.count }}</td>
+              <td style="text-align:right;white-space:nowrap">
+                {% if row.count %}
+                  <a class="kis-btn kis-btn-sm kis-btn-primary" target="_blank" href="{% url 'bulletin_ponctuel_pdf' row.enrollment.id term.id %}">Imprimer</a>
+                {% else %}
+                  <span class="kis-text-muted">Aucune note</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <p style="margin-bottom:0">Aucun élève inscrit dans cette classe.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

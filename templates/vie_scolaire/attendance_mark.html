@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div><h1>Présences — {{ classe }}</h1><p>Enregistrer la journée de la classe.</p></div>
+  </div>
+  <form method="post" class="kis-card">
+    <div class="kis-card-body">
+      {% csrf_token %}
+      <label>Date</label>
+      <input type="date" name="date" value="{{ selected_date|date:'Y-m-d' }}" required>
+      <table class="kis-table" style="margin-top:16px">
+        <thead><tr><th>Élève</th><th>Statut</th><th>Justifiée</th><th>Retard (min)</th><th>Observation</th></tr></thead>
+        <tbody>
+        {% for e in enrollments %}
+          <tr>
+            <td>{{ e.student }}</td>
+            <td>
+              <select name="status_{{ e.id }}">
+                <option value="PRESENT">Présent</option>
+                <option value="ABSENT">Absent</option>
+                <option value="LATE">Retard</option>
+              </select>
+            </td>
+            <td><input type="checkbox" name="justified_{{ e.id }}" title="Uniquement pour une absence"></td>
+            <td><input type="number" name="late_minutes_{{ e.id }}" min="1" style="max-width:100px"></td>
+            <td><input name="note_{{ e.id }}"></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <button class="kis-btn kis-btn-primary" type="submit">Enregistrer</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

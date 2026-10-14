@@ -1,0 +1,12 @@
+{% if classe %}
+  <div class="kis-form-help"><strong>{{ classe.display_name }}</strong> — matières applicables uniquement à cette classe.</div>
+  {% if links %}
+    <div class="kis-check-grid">
+      {% for link in links %}
+        <label class="kis-check-item"><input type="checkbox" name="subjects" value="{{ link.subject.id }}"> <span>{{ link.name }}</span>{% if link.coefficient %}<small>Coef. {{ link.coefficient }}</small>{% endif %}</label>
+      {% endfor %}
+    </div>
+  {% else %}<p>Aucune matière active pour cette classe.</p>{% endif %}
+{% else %}
+  <p>Sélectionnez d'abord une classe.</p>
+{% endif %}

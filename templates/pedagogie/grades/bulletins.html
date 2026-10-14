@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div>
+      <h1>Bulletins — {{ classe.display_name }}</h1>
+      <p>{{ term.name }} · {{ enrollments|length }} élève(s) · « WhatsApp » ouvre le message au parent et télécharge le bulletin à joindre.</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">{% if "pedagogy.manage" in kis_perms %}<a class="kis-btn" href="{% url 'bulletin_config' classe.id %}">Paramétrer le bulletin</a>{% endif %}{% if "grades.enter" in kis_perms %}<a class="kis-btn" href="{% url 'class_results' classe.id term.id %}">Saisie des résultats</a>{% endif %}</div>
+  </div>
+
+  <div class="kis-card" style="margin-bottom:16px;{% if lock %}border-left:4px solid #b42318{% endif %}">
+    <div class="kis-card-body" style="display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+      <div>
+        {% if lock %}
+          <strong>🔒 Bulletins verrouillés</strong> depuis le {{ lock.locked_at|date:"d/m/Y à H:i" }}{% if lock.locked_by %} par {{ lock.locked_by }}{% endif %}.
+          <div class="kis-text-muted">Aucune note de cette classe ne peut être modifiée pour {{ term.name }}, ni à l'écran ni par la saisie mobile.</div>
+        {% else %}
+          <strong>Bulletins ouverts à la saisie.</strong>
+          <div class="kis-text-muted">Verrouillez-les une fois imprimés et remis : les notes de {{ term.name }} ne pourront plus changer.</div>
+        {% endif %}
+      </div>
+      {% if "pedagogy.manage" in kis_perms %}
+      <form method="post" action="{% url 'bulletin_lock_toggle' classe.id term.id %}" onsubmit="return confirm('{% if lock %}Rouvrir la saisie des notes de {{ classe.display_name|escapejs }} pour {{ term.name|escapejs }} ?{% else %}Verrouiller les bulletins de {{ classe.display_name|escapejs }} pour {{ term.name|escapejs }} ? Plus aucune note ne pourra être modifiée.{% endif %}');">
+        {% csrf_token %}<input type="hidden" name="action" value="{% if lock %}unlock{% else %}lock{% endif %}">
+        <button class="kis-btn {% if lock %}{% else %}kis-btn-danger{% endif %}" type="submit">{% if lock %}Déverrouiller{% else %}Verrouiller les bulletins{% endif %}</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="kis-card" style="margin-bottom:16px">
+    <div class="kis-card-body">
+      <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+        <label for="bulletin_term"><strong>Période</strong></label>
+        <select id="bulletin_term" class="kis-select" style="max-width:260px" onchange="if(this.value) window.location.href=this.value">
+          {% for item in terms %}
+            <option value="{% url 'class_bulletins' classe.id item.id %}" {% if item.id == term.id %}selected{% endif %}>{{ item.name }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="bulletin_print_mode"><strong>Mode d'impression</strong></label>
+        <select id="bulletin_print_mode" class="kis-select" style="max-width:250px">
+          <option value="1">1 bulletin par page</option>
+          <option value="2">2 bulletins par page</option>
+        </select>
+        <button type="button" class="kis-btn kis-btn-primary" onclick="
+          const mode=document.getElementById('bulletin_print_mode').value;
+          window.open('{% url 'class_bulletins_pdf' classe.id term.id %}?copies_per_page='+mode, '_blank');
+        ">Imprimer les bulletins de la classe</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="kis-card">
+    <div class="kis-card-body">
+      <h2 style="margin-top:0">Élèves de la classe</h2>
+      {% if enrollments %}
+      <div style="overflow-x:auto">
+        <table class="kis-table" style="width:100%">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Élève</th>
+              <th>Matricule</th>
+              <th style="text-align:right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for enrollment in enrollments %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td><strong>{{ enrollment.student.first_name }} {{ enrollment.student.last_name }}</strong></td>
+              <td>{{ enrollment.student.matricule|default:"—" }}</td>
+              <td style="text-align:right;white-space:nowrap">
+                <a class="kis-btn kis-btn-primary" target="_blank" href="{% url 'bulletin_pdf' enrollment.id term.id %}">Bulletin</a>
+                <a class="kis-btn" target="_blank" href="{% url 'bulletin_pdf' enrollment.id term.id %}?duplicate=1">Duplicata</a>
+                {% if enrollment.whatsapp_url %}<a class="kis-btn kis-btn-whatsapp" data-wa data-wa-pdf="{% url 'bulletin_pdf' enrollment.id term.id %}" data-wa-pdf-name="bulletin_{{ enrollment.student.last_name }}_{{ enrollment.student.first_name }}.pdf" href="{{ enrollment.whatsapp_url }}" target="_blank" rel="noopener" title="Le bulletin PDF est téléchargé pour être joint au message">WhatsApp</a>{% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <p style="margin-bottom:0">Aucun élève inscrit dans cette classe.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

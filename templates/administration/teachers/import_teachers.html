@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Importer des enseignants — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header"><div><h1>Importer des enseignants depuis Excel</h1><p>Établissement : {{ school.name }}</p></div></div>
+  <div class="kis-card"><div class="kis-card-body">
+    <p class="text-muted">
+      Le fichier doit être au format <strong>Excel (.xlsx)</strong>. Les colonnes ci-dessous sont reconnues ;
+      <strong>Matricule</strong>, <strong>Prénom</strong> et <strong>Nom</strong> sont obligatoires.
+      Un enseignant déjà présent (même Matricule) est mis à jour plutôt que dupliqué — pratique pour
+      corriger un import ou compléter un tableau petit à petit.
+    </p>
+    <p class="kis-text-muted" style="margin-top:6px">ℹ️ Le Matricule identifie chaque enseignant : réimporter le fichier met à jour les fiches existantes, sans doublon. Un fichier d'élèves ou du personnel non enseignant est refusé.</p>
+    <div class="table-responsive"><table class="kis-table"><thead><tr><th>Colonne Excel</th><th>Correspondance KIS</th><th>Obligatoire</th></tr></thead><tbody>
+      <tr><td>Matricule</td><td>Matricule</td><td>Oui</td></tr>
+      <tr><td>Prénom</td><td>Prénom</td><td>Oui</td></tr>
+      <tr><td>Nom</td><td>Nom</td><td>Oui</td></tr>
+      <tr><td>Téléphone</td><td>Téléphone</td><td>Non</td></tr>
+      <tr><td>Email</td><td>Email</td><td>Non</td></tr>
+      <tr><td>Adresse</td><td>Adresse</td><td>Non</td></tr>
+      <tr><td>Statut</td><td>Permanent / Vacataire</td><td>Non (Permanent par défaut)</td></tr>
+      <tr><td>Profil</td><td>Généraliste / Spécialiste / Formateur métier</td><td>Non</td></tr>
+      <tr><td>Spécialité</td><td>Spécialité</td><td>Non</td></tr>
+      <tr><td>Diplôme</td><td>Diplôme / Qualification</td><td>Non</td></tr>
+      <tr><td>SalaireMensuel</td><td>Salaire mensuel fixe (permanents)</td><td>Non</td></tr>
+      <tr><td>TauxHoraire</td><td>Taux horaire (vacataires)</td><td>Non</td></tr>
+      <tr><td>DateRecrutement</td><td>Date de recrutement</td><td>Non</td></tr>
+    </tbody></table></div>
+    <form method="post" enctype="multipart/form-data">{% csrf_token %}<div class="kis-form-group"><label class="kis-label">Fichier Excel (.xlsx)</label><input type="file" name="file" accept=".xlsx" required></div><button class="kis-btn kis-btn-primary" type="submit">Importer</button></form>
+  </div></div>
+</div>
+{% endblock %}

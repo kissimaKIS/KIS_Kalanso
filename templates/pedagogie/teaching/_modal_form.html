@@ -1,0 +1,16 @@
+<form method="post" action="{{ action_url }}" class="kis-modal-teaching-form" data-modal-form data-modal-reload="true" data-teacher-profiles="{{ teacher_profiles }}" data-class-subjects="{{ class_subjects }}" novalidate>
+  {% csrf_token %}
+  {% if form.errors %}<div class="kis-alert kis-alert-error"><strong>Impossible d'enregistrer l'affectation.</strong> Vérifiez les champs signalés ci-dessous.</div>{% endif %}
+  <p class="kis-text-muted">Année scolaire active : <strong>{{ school_year.name }}</strong></p>
+  <div class="kis-grid kis-grid-2">
+    <div class="kis-form-group"><label>{{ form.teacher.label }}</label>{{ form.teacher }}{{ form.teacher.errors }}</div>
+    <div class="kis-form-group"><label>{{ form.classe.label }}</label>{{ form.classe }}{{ form.classe.errors }}</div>
+    <div class="kis-form-group"><label>{{ form.assignment_type.label }}</label>{{ form.assignment_type }}{{ form.assignment_type.errors }}</div>
+    <div class="kis-form-group" id="modal-subject-group"><label>{{ form.subject.label }}</label>{{ form.subject }}{{ form.subject.errors }}<p class="kis-help" id="modal-subject-help"></p></div>
+  </div>
+  <div class="kis-alert kis-alert-info" id="modal-assignment-mode" hidden></div>
+  <div class="kis-modal-actions">
+    <button type="button" class="kis-btn" data-modal-close>Annuler</button>
+    <button type="submit" class="kis-btn kis-btn-primary">Enregistrer</button>
+  </div>
+</form>

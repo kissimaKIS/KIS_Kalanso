@@ -1,0 +1,40 @@
+{% load kis_tags %}
+<div class="kis-card" style="padding:14px;margin-bottom:14px">
+  <strong>Frais obligatoires</strong>
+  <p class="kis-text-muted" style="margin:5px 0 12px">Inscription et scolarité sont appliquées automatiquement selon le secteur de la classe.</p>
+  {% if required_fees %}
+    <div class="kis-grid kis-grid-2">
+    {% for fee in required_fees %}
+      <div class="kis-card" style="padding:14px">
+        <strong>{{ fee.name }}</strong><br><span class="kis-text-muted">{{ fee.amount|floatformat:'0' }} {{ school_year.school.currency }} · Automatique</span>
+        {% with comps=fee|components_json %}{% if comps %}<div class="kis-text-muted" style="font-size:13px;margin-top:4px">Détail : {% for c in fee.components.all %}{{ c.name }} {{ c.amount|floatformat:'0' }}{% if not forloop.last %} · {% endif %}{% endfor %}</div>{% endif %}
+        <span data-required-amount="{{ fee.amount }}" data-fee-id="{{ fee.id }}" data-fee-amount="{{ fee.amount }}" data-fee-name="{{ fee.name|escape }}" data-components="{{ comps }}" hidden></span>{% endwith %}
+      </div>
+    {% endfor %}
+    </div>
+  {% else %}
+    <div class="kis-empty-state">Sélectionnez une classe pour afficher les frais automatiques.</div>
+  {% endif %}
+</div>
+
+<div class="kis-card" style="padding:14px">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><strong>Options financières</strong><button type="button" class="kis-btn kis-btn-sm" data-modal-url="{% url 'fee_type_create' %}?modal=1&category=optional" data-modal-title="Nouvelle option financière">+ Ajouter une option</button></div>
+  <p class="kis-text-muted" style="margin:5px 0 12px">Sélectionnez uniquement les options applicables à cet élève.</p>
+  {% if optional_fees %}
+    <div class="kis-grid kis-grid-2">
+    {% for fee in optional_fees %}
+      <label class="kis-card" style="padding:14px;display:flex;gap:12px;align-items:flex-start">
+        <input type="checkbox" name="optional_fees" value="{{ fee.id }}" data-fee-id="{{ fee.id }}" data-fee-amount="{{ fee.amount }}" data-fee-name="{{ fee.name|escape }}">
+        <span><strong>{{ fee.name }}</strong><br><span class="kis-text-muted">{{ fee.amount|floatformat:'0' }} {{ school_year.school.currency }}{% if fee.allows_quantity %} / unité · quantité et prix ajustables{% else %} · Au choix{% endif %}</span>
+        {% if fee.allows_quantity %}<span style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          <label style="font-size:13px">Quantité <input class="kis-input" style="width:70px" type="number" min="1" max="999" value="1" name="option_qty_{{ fee.id }}" data-qty-for="{{ fee.id }}"></label>
+          <label style="font-size:13px">Prix unitaire <input class="kis-input" style="width:110px" inputmode="numeric" value="{{ fee.amount|floatformat:'0' }}" name="option_price_{{ fee.id }}" data-price-for="{{ fee.id }}"></label>
+        </span>{% endif %}</span>
+      </label>
+    {% endfor %}
+    </div>
+  {% else %}
+    <div class="kis-empty-state"><strong>Aucune option financière configurée.</strong><p class="kis-text-muted" style="margin:6px 0 0">Les options sont facultatives et ne sont affichées que lorsqu'elles ont été configurées par l'établissement.</p></div>
+  {% endif %}
+</div>
+

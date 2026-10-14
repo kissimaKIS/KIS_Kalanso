@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load l10n %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div><h1>{{ evaluation.name }} — {{ classe.display_name }}</h1><p>{{ evaluation.term.name }} — {{ evaluation.date|date:"d/m/Y" }}</p></div>
+    
+  </div>
+
+  <div class="kis-alert kis-alert-secondary" style="margin-bottom:16px">
+    Notes de suivi (n'apparaissent pas sur le bulletin). Pour les notes du bulletin, utilisez « Notes du bulletin » depuis la fiche de la classe.
+  </div>
+
+  {% if errors %}<div class="kis-alert kis-alert-error"><ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul></div>{% endif %}
+
+  <div class="kis-card" style="margin-bottom:16px">
+    <div class="kis-card-body">
+      {% if links|length > 1 %}
+      <div class="kis-tabs" role="tablist" aria-label="Matières de l'évaluation">
+        {% for link in links %}<a role="tab" class="kis-tab {% if selected_link and link.subject_id == selected_link.subject_id %}kis-tab-active{% endif %}" href="{% url 'evaluation_results' evaluation.id %}?subject={{ link.subject.id }}">{{ link.display_name }}</a>{% endfor %}
+      </div>
+      {% endif %}
+      <div style="margin-top:12px"><label for="print_subject"><strong>Fiche vierge à imprimer</strong></label>
+        <select id="print_subject" class="kis-select" style="max-width:360px" onchange="if(this.value) window.open(this.value, '_blank')">
+          <option value="">Choisir une matière…</option>
+          {% for link in links %}<option value="{% url 'evaluation_sheet_print' evaluation.id link.subject.id %}">{{ link.display_name }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+  </div>
+
+  {% if selected_link %}
+  <form method="post">
+    {% csrf_token %}<input type="hidden" name="subject_id" value="{{ selected_link.subject.id }}">
+    <div class="kis-card" style="overflow-x:auto"><div class="kis-card-body">
+      <h2 style="margin-top:0">{{ selected_link.display_name }} <small>— Coef. {{ selected_link.coefficient }}</small></h2>
+      <table class="kis-table">
+        <thead><tr><th>N°</th><th>Élève</th>{% if mode == 'F1' %}<th>Note /10</th>{% elif single_note %}<th>Note /20</th>{% else %}<th>Moyenne de classe A /20</th><th>Composition B /20</th>{% endif %}</tr></thead>
+        <tbody>
+        {% for row in rows %}
+        <tr>
+          <td>{{ forloop.counter }}</td><td><strong>{{ row.enrollment.student.first_name }} {{ row.enrollment.student.last_name }}</strong></td>
+          {% if mode == 'F1' %}
+          <td><input type="number" inputmode="decimal" step="0.01" min="0" max="10" name="composition_{{ row.enrollment.id }}_{{ selected_link.subject.id }}" value="{% if row.grade %}{{ row.grade.composition|default_if_none:''|unlocalize }}{% endif %}" style="width:100px" oninput="if(parseFloat(this.value)>10)this.value='';"></td>
+          {% elif single_note %}
+          <td><input type="number" inputmode="decimal" step="0.01" min="0" max="20" name="note_{{ row.enrollment.id }}_{{ selected_link.subject.id }}" value="{% if row.grade %}{{ row.grade.composition|default_if_none:''|unlocalize }}{% endif %}" style="width:100px" oninput="if(parseFloat(this.value)>20)this.value='';"></td>
+          {% else %}
+          <td><input type="number" inputmode="decimal" step="0.01" min="0" max="20" name="class_average_{{ row.enrollment.id }}_{{ selected_link.subject.id }}" value="{% if row.grade %}{{ row.grade.class_average|default_if_none:''|unlocalize }}{% endif %}" style="width:100px" oninput="if(parseFloat(this.value)>20)this.value='';"></td>
+          <td><input type="number" inputmode="decimal" step="0.01" min="0" max="20" name="composition_{{ row.enrollment.id }}_{{ selected_link.subject.id }}" value="{% if row.grade %}{{ row.grade.composition|default_if_none:''|unlocalize }}{% endif %}" style="width:100px" oninput="if(parseFloat(this.value)>20)this.value='';"></td>
+          {% endif %}
+        </tr>
+        {% empty %}<tr><td colspan="5">Aucun élève inscrit dans cette classe.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+      <button class="kis-btn kis-btn-primary" style="margin-top:16px" type="submit">{% if has_saved_notes %}Mettre à jour les notes{% else %}Enregistrer les notes{% endif %}</button>
+    </div></div>
+  </form>
+  {% else %}<div class="kis-card"><div class="kis-card-body">Aucune matière n'a été sélectionnée pour cette évaluation.</div></div>{% endif %}
+</div>
+{% endblock %}

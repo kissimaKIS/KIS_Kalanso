@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Reprise des soldes antérieurs — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header"><div><h1>Reprise des soldes antérieurs</h1><p>Vous n'avez pas à repartir de zéro : reprenez les reliquats des années d'avant KIS Kalanso, y compris ceux des élèves qui ont quitté l'établissement mais continuent de payer.</p></div></div>
+  <div class="kis-grid kis-grid-2" style="margin-bottom:16px">
+    <div class="kis-card"><div class="kis-card-body">
+      <h3 style="margin-top:0">1. Charger votre tableau Excel</h3>
+      <form method="post" enctype="multipart/form-data">{% csrf_token %}
+        <input class="kis-input" type="file" name="file" accept=".xlsx" required>
+        <button class="kis-btn kis-btn-primary" type="submit" style="margin-top:10px">Prévisualiser</button>
+      </form>
+      <p class="kis-text-muted">Rien n'est enregistré avant votre confirmation. Réimporter le même fichier ne crée pas de doublon.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="kis-btn kis-btn-sm" href="{% url 'arrears_template' %}">Modèle Excel vide</a><a class="kis-btn kis-btn-sm" href="{% url 'arrears_template' %}?eleves=1">Modèle avec les élèves de l'année</a><a class="kis-btn kis-btn-sm" href="{% url 'arrears_quick' %}">Saisie rapide par classe (cahier)</a></div>
+    </div></div>
+    <div class="kis-card"><div class="kis-card-body">
+      <h3 style="margin-top:0">Format attendu</h3>
+      <ul style="margin:0;padding-left:18px">
+        <li>Un titre contenant l'année au-dessus de chaque tableau, ex. <em>Situation des paiements de frais de scolarité 2023 - 2024</em> (ou une feuille par année nommée « 2023-2024 »).</li>
+        <li>Une ligne d'en-têtes : <strong>PRENOMS</strong>, <strong>NOM</strong>, puis <strong>Reliquat</strong> — ou <strong>Mt ANNUEL</strong> et <strong>Mt perçu</strong>. Colonnes facultatives : Matricule, Classe, Année ; les colonnes des mois sont ignorées. Les blocs suivants peuvent n'avoir qu'un titre.</li>
+        <li>Sans aucune année, le reliquat est repris comme « antérieur, année non précisée ».</li>
+        <li>Seuls les élèves ayant un reliquat sont repris. Un élève déjà dans KIS (même matricule, ou mêmes nom et prénom) est retrouvé ; sinon il est créé comme ancien élève.</li>
+      </ul>
+    </div></div>
+  </div>
+
+  {% if report %}
+  <form method="post" class="kis-card" style="margin-bottom:16px"><div class="kis-card-body">{% csrf_token %}
+    <input type="hidden" name="token" value="{{ token }}"><input type="hidden" name="confirm" value="1">
+    <h3 style="margin-top:0">2. Vérifier les rattachements puis confirmer</h3>
+    <p><strong>{{ report.importable|length }}</strong> reliquat(s) à reprendre pour <strong>{{ report.total|floatformat:"0g" }} {{ school.currency }}</strong>
+      ({{ report.years|join:", " }}).{% if settled_count %} {{ settled_count }} ligne(s) soldée(s) non reprise(s).{% endif %}</p>
+    {% if report.to_check %}<div class="kis-alert kis-alert-warning">{{ report.to_check|length }} ligne(s) <strong>à vérifier</strong> : choisissez l'élève dans la colonne « Rattacher à ». Un mauvais choix crée un doublon ou mélange deux élèves.</div>{% endif %}
+    <table class="kis-table"><thead><tr><th>Ligne</th><th>Année</th><th>Dans le fichier</th><th>Reliquat</th><th>Rattacher à</th><th>Résultat</th></tr></thead><tbody>
+    {% for r in shown %}<tr{% if r.status == "à vérifier" %} style="background:#FFF7E6"{% endif %}>
+      <td style="white-space:nowrap">{{ r.line_label }}</td><td>{{ r.year_label }}</td>
+      <td>{{ r.last_name }} {{ r.first_name }}{% if r.matricule %} <span class="kis-text-muted">({{ r.matricule }})</span>{% endif %}{% if r.class_label %} <span class="kis-badge">{{ r.class_label }}</span>{% endif %}</td>
+      <td>{{ r.balance|default_if_none:"—"|floatformat:"0g" }}</td>
+      <td>{% if r.importable %}<select class="kis-input" name="match_{{ r.index }}" style="min-width:240px">
+          {% for value, label in r.candidates %}<option value="{{ value }}" {% if value == r.default_choice %}selected{% endif %}>{{ label }}</option>{% endfor %}
+          <option value="new" {% if r.default_choice == "new" %}selected{% endif %}>Ancien élève — créer la fiche</option>
+          <option value="skip">Ne pas reprendre cette ligne</option>
+        </select>{% else %}—{% endif %}</td>
+      <td>{% if r.status == "élève existant" or r.status == "nouvel élève" %}<span class="kis-badge kis-badge-success">{{ r.status }}</span>{% else %}<span class="kis-badge">{{ r.status }}</span>{% endif %} <span class="kis-text-muted">{{ r.message }}</span></td>
+    </tr>{% endfor %}
+    </tbody></table>
+    {% if report.importable %}<button class="kis-btn kis-btn-primary" type="submit" style="margin-top:12px">Confirmer la reprise</button>{% endif %}
+  </div></form>
+  {% endif %}
+
+  <div class="kis-card"><div class="kis-card-body">
+    <h3 style="margin-top:0">Soldes repris</h3>
+    <table class="kis-table"><thead><tr><th>Année</th><th>Élèves</th><th>Reliquats</th><th>Encaissé depuis</th><th>Reste</th><th></th></tr></thead><tbody>
+    {% for a in archives %}<tr><td>{{ a.year.name }}</td><td>{{ a.count }}</td><td>{{ a.total|floatformat:"0g" }}</td><td>{{ a.paid|floatformat:"0g" }}</td><td><strong>{{ a.rest|floatformat:"0g" }}</strong></td><td><a class="kis-btn kis-btn-sm" href="{% url 'debt_report' %}?year={{ a.year.id }}">Voir les impayés</a></td></tr>
+    {% empty %}<tr><td colspan="6">Aucun solde antérieur repris pour l'instant.</td></tr>{% endfor %}
+    </tbody></table>
+    <p class="kis-text-muted" style="margin-bottom:0">Pour un seul élève, utilisez « Ajouter un reliquat antérieur » sur sa fiche. Les reliquats s'encaissent comme les autres frais, sur le même reçu.</p>
+  </div></div>
+</div>
+{% endblock %}

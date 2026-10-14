@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid black; padding: 5px; text-align: center; }
+        .header { text-align: center; margin-bottom: 20px; }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <h2>BULLETIN SCOLAIRE</h2>
+    <p>{{ student }}</p>
+    <p>{{ classe }} - {{ term }}</p>
+</div>
+
+<table>
+    <tr>
+        <th>Matière</th>
+        <th>Devoir</th>
+        <th>Composition</th>
+        <th>Moyenne</th>
+        <th>Coef</th>
+        <th>Total</th>
+    </tr>
+
+    {% for note in notes %}
+    <tr>
+        <td>{{ note.subject.name }}</td>
+        <td>{{ note.devoir }}</td>
+        <td>{{ note.composition }}</td>
+        <td>{{ note.moyenne|floatformat:2 }}</td>
+        <td>{{ note.subject.coefficient }}</td>
+        <td>{{ note.total|floatformat:2 }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<h3>Moyenne Générale : {{ moyenne|floatformat:2 }}</h3>
+<h3>Rang : {{ rang }}</h3>
+
+</body>
+</html>

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header"><div><h1>Affectations &amp; plan de charge</h1><p>Répartition des enseignants sur les classes et matières de l'année active.</p></div>{% if "pedagogy.manage" in kis_perms %}<a class="kis-btn kis-btn-primary" href="{% url 'teaching_create' %}" data-modal-url="{% url 'teaching_create' %}" data-modal-title="Nouvelle affectation">Nouvelle affectation</a>{% endif %}</div>
+  <div class="kis-card"><div class="kis-card-body">
+    <form method="get" class="kis-grid kis-grid-3">
+      <div class="kis-form-group"><label>Recherche</label><input name="q" value="{{ search }}" placeholder="Nom ou matricule"></div>
+      <div class="kis-form-group"><label>Statut</label><select name="statut"><option value="">Tous</option>{% for value,label in contract_types %}<option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+      <div class="kis-form-group"><label>Profil</label><select name="profil"><option value="">Tous</option>{% for value,label in profiles %}<option value="{{ value }}" {% if selected_profile == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+      <div class="kis-form-group"><label>Niveau</label><select name="niveau"><option value="">Tous</option>{% for level in levels %}<option value="{{ level.id }}" {% if selected_level == level.id|stringformat:"s" %}selected{% endif %}>{{ level.name }}</option>{% endfor %}</select></div>
+      <div><button class="kis-btn" type="submit">Filtrer</button></div>
+    </form>
+  </div></div>
+  <div class="kis-card"><div class="kis-card-body"><table class="kis-table"><thead><tr><th>Enseignant</th><th>Statut</th><th>Niveau</th><th>Classe(s)</th><th>Matière(s)</th><th>Charge</th><th>Actions</th></tr></thead><tbody>
+    {% for item in groups %}
+    <tr>
+      <td><strong>{{ item.teacher }}</strong><br><small>{{ item.teacher.employee_number }}</small></td>
+      <td>{{ item.teacher.get_contract_type_display }}</td>
+      <td>{{ item.levels|join:", " }}</td>
+      <td>{{ item.classes|join:", " }}</td>
+      <td>{% if item.subjects %}{{ item.subjects|join:", " }}{% else %}—{% endif %}</td>
+      <td>{% if item.teacher.pedagogical_profile == 'generaliste' %}{{ item.charges|join:" + " }}{% else %}{{ item.charges|join:" + " }}{% endif %}</td>
+      <td>{% if "pedagogy.manage" in kis_perms %}{% for assignment in item.assignments %}<a class="kis-btn kis-btn-sm" href="{% url 'teaching_delete' assignment.id %}">Supprimer</a>{% endfor %}{% else %}{% for assignment in item.assignments %}<div><small>{{ assignment.class }} — {{ assignment.subject }}</small></div>{% endfor %}{% endif %}</td>
+    </tr>
+    {% empty %}<tr><td colspan="7">Aucune affectation pour l'année scolaire active.</td></tr>{% endfor %}
+  </tbody></table></div></div>
+</div>
+{% endblock %}

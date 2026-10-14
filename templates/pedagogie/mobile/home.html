@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Saisie mobile — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div>
+      <h1>Saisie mobile des notes</h1>
+      <p>Fondamental, lycée et centre — saisie sur téléphone ou tablette, sans internet, avec l'application KIS Kalanso Notes.</p>
+    </div>
+  </div>
+
+  <div class="kis-card" style="margin-bottom:16px">
+    <div class="kis-card-body">
+      <strong>Comment ça marche</strong>
+      <ol style="margin:8px 0 0;padding-left:20px">
+        <li>Téléchargez un <strong>paquet</strong> — par enseignant (ses matières) ou par classe (tout le bulletin, Conduite comprise, pour le secrétariat) — et envoyez-le sur le téléphone ou la tablette (WhatsApp, Bluetooth, câble, clé USB).</li>
+        <li>On l'ouvre dans KIS Kalanso Notes, on saisit les notes (note unique en Fondamentale 1, A et B ailleurs), puis on touche « Envoyer ».</li>
+        <li>Chargez ici le <strong>fichier de notes</strong> reçu : KIS contrôle tout et montre les changements avant d'enregistrer.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="kis-grid kis-grid-2" style="margin-bottom:16px">
+    <div class="kis-card">
+      <div class="kis-card-header"><strong>1. Paquets par enseignant</strong></div>
+      <div class="kis-card-body">
+        {% if not terms %}
+          <p>Aucune période n'est créée pour l'année active. Créez d'abord les périodes dans Évaluations &amp; bulletins.</p>
+        {% else %}
+          <form method="get" class="kis-form-row" style="margin-bottom:12px">
+            <select class="kis-select" name="term" onchange="this.form.submit()">
+              {% for t in terms %}<option value="{{ t.id }}" {% if t.id == term.id %}selected{% endif %}>{{ t.name }} — {{ year.name }}</option>{% endfor %}
+            </select>
+          </form>
+          <table class="kis-table">
+            <thead><tr><th>Enseignant</th><th>Feuilles</th><th></th></tr></thead>
+            <tbody>
+            {% for row in teachers %}
+              <tr>
+                <td><strong>{{ row.teacher.full_name }}</strong>
+                  {% for w in row.warnings %}<div class="kis-text-muted" style="font-size:12px">{{ w }}</div>{% endfor %}
+                </td>
+                <td>{% for s in row.sheets %}<div style="font-size:13px">{{ s.classe.display_name }} — {{ s.label }}</div>{% empty %}—{% endfor %}</td>
+                <td>{% if row.sheets %}
+                  <form method="post" action="{% url 'mobile_package_download' %}">
+                    {% csrf_token %}<input type="hidden" name="teacher" value="{{ row.teacher.id }}"><input type="hidden" name="term" value="{{ term.id }}">
+                    <button class="kis-btn kis-btn-sm kis-btn-primary" type="submit">Télécharger le paquet</button>
+                  </form>{% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="3">Aucun enseignant affecté cette année.</td></tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        {% endif %}
+      </div>
+    </div>
+    <div class="kis-card">
+      <div class="kis-card-header"><strong>2. Charger un fichier de notes</strong></div>
+      <div class="kis-card-body">
+        <p style="margin-top:0">Fichier <code>.json</code> renvoyé par l'enseignant. Rien n'est enregistré avant votre validation.</p>
+        <form method="post" action="{% url 'mobile_submission_upload' %}" enctype="multipart/form-data" class="kis-form-row">
+          {% csrf_token %}
+          <input class="kis-input" type="file" name="notes" accept=".json,application/json" required>
+          <button class="kis-btn kis-btn-primary" type="submit">Charger et vérifier</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {% if term %}
+  <div class="kis-card" style="margin-bottom:16px">
+    <div class="kis-card-header"><strong>Paquet par classe</strong> <span class="kis-text-muted" style="font-size:13px">— secrétariat ou direction : toutes les lignes du bulletin des classes cochées</span></div>
+    <div class="kis-card-body">
+      <form method="post" action="{% url 'mobile_package_download' %}">
+        {% csrf_token %}<input type="hidden" name="term" value="{{ term.id }}">
+        <div style="display:flex;flex-wrap:wrap;gap:6px 18px;margin-bottom:12px">
+          {% for row in classes %}
+            <label style="min-width:200px;{% if not row.configured or row.locked %}opacity:.55{% endif %}">
+              <input type="checkbox" name="classes" value="{{ row.classe.id }}" {% if not row.configured or row.locked %}disabled{% endif %}>
+              {{ row.classe.display_name }}
+              {% if row.locked %}<span class="kis-text-muted" style="font-size:12px">(verrouillée)</span>{% elif not row.configured %}<span class="kis-text-muted" style="font-size:12px">(bulletin non paramétré)</span>{% endif %}
+            </label>
+          {% empty %}<span>Aucune classe pour cette année.</span>{% endfor %}
+        </div>
+        <div class="kis-form-row">
+          <button class="kis-btn kis-btn-sm" type="button" onclick="this.form.querySelectorAll('input[name=classes]:not(:disabled)').forEach(function(c){c.checked=true})">Tout cocher</button>
+          <input class="kis-input" type="text" name="label" placeholder="Nom du paquet (facultatif), ex. Secrétariat — 1er cycle" style="flex:1">
+          <button class="kis-btn kis-btn-primary" type="submit">Télécharger le paquet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="kis-card">
+    <div class="kis-card-header"><strong>Fichiers reçus</strong></div>
+    <div class="kis-card-body">
+      <table class="kis-table">
+        <thead><tr><th>Reçu le</th><th>Paquet</th><th>Période</th><th>État</th><th>Notes enregistrées</th><th></th></tr></thead>
+        <tbody>
+        {% for s in submissions %}
+          <tr>
+            <td>{{ s.imported_at|date:"d/m/Y H:i" }}</td>
+            <td>{{ s.package.holder }}</td>
+            <td>{{ s.package.term.name }}</td>
+            <td><span class="kis-badge{% if s.status == 'APPLIED' %} kis-badge-success{% elif s.status == 'PENDING' %} kis-badge-warning{% endif %}">{{ s.get_status_display }}</span></td>
+            <td>{% if s.status == 'APPLIED' %}{{ s.applied_count }}{% else %}—{% endif %}</td>
+            <td><a class="kis-btn kis-btn-sm" href="{% url 'mobile_submission_detail' s.id %}">{% if s.status == 'PENDING' %}Vérifier{% else %}Voir{% endif %}</a></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6">Aucun fichier de notes reçu pour le moment.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

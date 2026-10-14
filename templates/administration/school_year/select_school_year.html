@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Choisir année scolaire</title>
+</head>
+<body>
+
+<h2>Choisir une année scolaire</h2>
+
+<form method="post">
+
+    {% csrf_token %}
+
+    <select name="school_year_id">
+
+        {% for year in school_years %}
+
+            <option value="{{ year.id }}">
+
+                {{ year.name }}
+
+            </option>
+
+        {% endfor %}
+
+    </select>
+
+    <button type="submit">
+        Entrer
+    </button>
+
+</form>
+
+</body>
+</html>

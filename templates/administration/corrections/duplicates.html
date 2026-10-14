@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Doublons d'élèves — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header"><div><h1>Doublons d'élèves probables</h1><p>Fiches au nom identique ou proche qui partagent un téléphone de parent, le nom d'un parent ou la date de naissance, sans information contradictoire.</p></div><a class="kis-btn" href="{% url 'correction_log' %}">Journal des corrections</a></div>
+  <div class="kis-card"><div class="kis-card-body">
+    {% if hidden and not show_all %}<p class="kis-text-muted">{{ hidden }} autre(s) paire(s) au nom identique mais sans aucun indice commun (homonymes possibles) : <a href="?tous=1">les afficher aussi</a>.</p>{% endif %}
+    <table class="kis-table"><thead><tr><th>Fiche proposée à garder</th><th>Fiche en double</th><th>Indices</th><th></th></tr></thead><tbody>
+    {% for p in pairs %}<tr>
+      <td><a href="{% url 'student_detail' p.keep.id %}">{{ p.keep.last_name }} {{ p.keep.first_name }}</a><div class="kis-text-muted" style="font-size:12px">{{ p.keep.matricule|default:"sans matricule" }} · {{ p.keep.date_of_birth|date:"d/m/Y"|default:"naissance —" }}</div></td>
+      <td><a href="{% url 'student_detail' p.drop.id %}">{{ p.drop.last_name }} {{ p.drop.first_name }}</a><div class="kis-text-muted" style="font-size:12px">{{ p.drop.matricule|default:"sans matricule" }} · {{ p.drop.date_of_birth|date:"d/m/Y"|default:"naissance —" }}</div></td>
+      <td>{% for r in p.reasons %}<span class="kis-badge{% if forloop.counter > 1 %} kis-badge-success{% endif %}" style="margin:1px">{{ r }}</span>{% endfor %}</td>
+      <td><a class="kis-btn kis-btn-sm kis-btn-primary" href="{% url 'student_merge' p.keep.id p.drop.id %}">Examiner et fusionner</a></td>
+    </tr>{% empty %}<tr><td colspan="4">Aucun doublon probable.</td></tr>{% endfor %}
+    </tbody></table>
+  </div></div>
+</div>
+{% endblock %}

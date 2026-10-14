@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Familles — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div><h1>Familles</h1><p>Frères et sœurs reconnus par un téléphone de parent commun, ou par les mêmes noms du père et de la mère. Une seule facture et un seul reçu pour toute la famille.</p></div>
+    <a class="kis-btn kis-btn-primary" target="_blank" href="{% url 'family_list_pdf' %}?{{ request.GET.urlencode }}">Imprimer la liste</a>
+  </div>
+  <div class="kis-card" style="margin-bottom:16px"><div class="kis-card-body">
+    <form method="get" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+      {% if school_years|length > 1 %}<div class="kis-form-group" style="margin:0"><label>Année</label><select class="kis-input" name="year" onchange="this.form.submit()">{% for y in school_years %}<option value="{{ y.id }}" {% if school_year and y.id == school_year.id %}selected{% endif %}>{{ y.name }}</option>{% endfor %}</select></div>{% endif %}
+      <div class="kis-form-group" style="margin:0"><label>Rechercher</label><input class="kis-input" type="search" name="q" value="{{ filters.q }}" placeholder="Nom d'un parent, d'un enfant ou téléphone"></div>
+      <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" name="du" value="1" {% if filters.du %}checked{% endif %} onchange="this.form.submit()"> Avec un reste à payer</label>
+      <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" name="tous" value="1" {% if filters.tous %}checked{% endif %} onchange="this.form.submit()"> Inclure les enfants uniques</label>
+      <button class="kis-btn" type="submit">Filtrer</button>
+    </form>
+  </div></div>
+  <div class="kis-card"><div class="kis-card-body">
+    <table class="kis-table"><thead><tr><th>Parents</th><th>Enfants</th><th>Montant</th><th>Payé</th><th>Reliquats antérieurs</th><th>Reste</th><th></th></tr></thead><tbody>
+    {% for f in families %}<tr>
+      <td><strong>{{ f.label }}</strong>{% if f.phone %}<br><span class="kis-text-muted">{{ f.phone }}</span>{% endif %}</td>
+      <td>{% for m in f.members %}<a href="{% url 'student_detail' m.student.id %}">{{ m.student.last_name }} {{ m.student.first_name }}</a> <span class="kis-text-muted">({{ m.classe.display_name }})</span>{% if not forloop.last %}<br>{% endif %}{% endfor %}</td>
+      <td>{{ f.total|floatformat:"0g" }}</td><td>{{ f.paid|floatformat:"0g" }}</td><td>{% if f.arrears %}{{ f.arrears|floatformat:"0g" }}{% else %}—{% endif %}</td><td><strong>{{ f.rest|floatformat:"0g" }}</strong></td>
+      <td style="white-space:nowrap">{% if f.rest > 0 and "finance.collect" in kis_perms %}<a class="kis-btn kis-btn-sm kis-btn-primary" href="{% url 'grouped_payment' f.first.id %}?famille=1">Encaisser</a> {% endif %}<a class="kis-btn kis-btn-sm" target="_blank" href="{% url 'family_statement_pdf' f.first.id %}">Facture famille</a></td>
+    </tr>{% empty %}<tr><td colspan="7">Aucune famille pour ces critères.</td></tr>{% endfor %}
+    </tbody>{% if families %}<tfoot><tr><th>{{ totals.count }} famille(s)</th><th>{{ totals.children }} enfant(s)</th><th>{{ totals.total|floatformat:"0g" }}</th><th>{{ totals.paid|floatformat:"0g" }}</th><th>{{ totals.arrears|floatformat:"0g" }}</th><th>{{ totals.rest|floatformat:"0g" }}</th><th></th></tr></tfoot>{% endif %}</table>
+  </div></div>
+</div>
+{% endblock %}

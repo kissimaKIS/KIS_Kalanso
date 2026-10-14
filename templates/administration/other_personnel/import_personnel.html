@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Importer le personnel — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header"><div><h1>Importer le personnel depuis Excel</h1><p>Établissement : {{ school.name }}</p></div></div>
+  <div class="kis-card"><div class="kis-card-body">
+    <p class="text-muted">
+      Le fichier doit être au format <strong>Excel (.xlsx)</strong>. Les colonnes ci-dessous sont reconnues ;
+      <strong>Matricule</strong>, <strong>Prénom</strong>, <strong>Nom</strong> et <strong>Fonction</strong> sont obligatoires.
+      Une personne déjà présente (même Matricule) est mise à jour plutôt que dupliquée.
+    </p>
+    <p class="kis-text-muted" style="margin-top:6px">ℹ️ Le Matricule identifie chaque personne : réimporter le fichier met à jour les fiches existantes, sans doublon. Un fichier d'élèves ou d'enseignants est refusé.</p>
+    <div class="table-responsive"><table class="kis-table"><thead><tr><th>Colonne Excel</th><th>Correspondance KIS</th><th>Obligatoire</th></tr></thead><tbody>
+      <tr><td>Matricule</td><td>Matricule</td><td>Oui</td></tr>
+      <tr><td>Prénom</td><td>Prénom</td><td>Oui</td></tr>
+      <tr><td>Nom</td><td>Nom</td><td>Oui</td></tr>
+      <tr><td>Fonction</td><td>Fonction</td><td>Oui</td></tr>
+      <tr><td>Statut</td><td>Permanent / Contractuel / Vacataire / Temporaire</td><td>Non (Permanent par défaut)</td></tr>
+      <tr><td>Téléphone</td><td>Téléphone</td><td>Non</td></tr>
+      <tr><td>Email</td><td>Email</td><td>Non</td></tr>
+      <tr><td>Adresse</td><td>Adresse</td><td>Non</td></tr>
+      <tr><td>DateNaissance</td><td>Date de naissance</td><td>Non</td></tr>
+      <tr><td>DateRecrutement</td><td>Date de recrutement</td><td>Non</td></tr>
+      <tr><td>SalaireMensuel</td><td>Salaire mensuel</td><td>Non</td></tr>
+      <tr><td>TauxHoraire</td><td>Taux horaire</td><td>Non</td></tr>
+    </tbody></table></div>
+    <form method="post" enctype="multipart/form-data">{% csrf_token %}<div class="kis-form-group"><label class="kis-label">Fichier Excel (.xlsx)</label><input type="file" name="file" accept=".xlsx" required></div><button class="kis-btn kis-btn-primary" type="submit">Importer</button></form>
+  </div></div>
+</div>
+{% endblock %}

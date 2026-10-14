@@ -1,0 +1,1767 @@
+/* ==========================================================
+   KIS UI FRAMEWORK
+   Version : 1.0
+   Auteur : KIS
+   ========================================================== */
+
+
+/* ==========================================================
+   DESIGN TOKENS
+   ========================================================== */
+
+:root{
+
+    /* ========= Couleurs ========= */
+
+    --kis-primary:#0F2D5C;
+    --kis-primary-hover:#1565C0;
+
+    --kis-success:#198754;
+    --kis-danger:#DC3545;
+    --kis-warning:#FFC107;
+    --kis-info:#0DCAF0;
+
+    --kis-bg:#F4F6F9;
+    --kis-surface:#FFFFFF;
+
+    --kis-text:#2D3748;
+    --kis-text-muted:#6C757D;
+
+    --kis-border:#DEE2E6;
+
+    /* ========= Radius ========= */
+
+    --kis-radius-sm:6px;
+    --kis-radius:10px;
+    --kis-radius-lg:16px;
+    --kis-radius-xl:24px;
+
+    /* ========= Ombres ========= */
+
+    --kis-shadow-sm:0 2px 6px rgba(0,0,0,.05);
+    --kis-shadow:0 4px 12px rgba(0,0,0,.08);
+    --kis-shadow-lg:0 10px 24px rgba(0,0,0,.15);
+
+    /* ========= Espacements ========= */
+
+    --kis-space-1:4px;
+    --kis-space-2:8px;
+    --kis-space-3:12px;
+    --kis-space-4:16px;
+    --kis-space-5:20px;
+    --kis-space-6:24px;
+    --kis-space-7:32px;
+    --kis-space-8:40px;
+    --kis-space-9:48px;
+
+    /* ========= Transition ========= */
+
+    --kis-transition:.25s ease;
+
+    /* ========= Sidebar ========= */
+
+    --kis-sidebar-width:260px;
+
+    /* ========= Navbar ========= */
+
+    --kis-navbar-height:70px;
+    /* ========= Z-INDEX ========= */
+
+    --kis-z-sidebar:1000;
+    --kis-z-navbar:1010;
+    --kis-z-dropdown:1020;
+    --kis-z-modal:1050;
+    --kis-z-tooltip:1100;
+
+    /* ========= Typography ========= */
+
+    --kis-font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;
+
+    --kis-font-size-sm:.875rem;
+    --kis-font-size:1rem;
+    --kis-font-size-lg:1.125rem;
+    --kis-font-size-xl:1.5rem;
+
+}
+
+/* ==========================================================
+   RESET
+   ========================================================== */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+
+    background:var(--kis-bg);
+
+    color:var(--kis-text);
+
+    font-family:var(--kis-font-family);
+
+    line-height:1.5;
+
+}
+
+img{
+
+    max-width:100%;
+
+    display:block;
+
+}
+
+a{
+
+    color:inherit;
+
+    text-decoration:none;
+
+    transition:var(--kis-transition);
+
+}
+
+button,
+input,
+select,
+textarea{
+
+    font:inherit;
+
+}
+
+/* ==========================================================
+   TYPOGRAPHIE
+   ========================================================== */
+
+h1,h2,h3,h4,h5,h6{
+
+    font-weight:600;
+
+    color:var(--kis-text);
+
+}
+
+p{
+
+    color:var(--kis-text-muted);
+
+    margin-bottom:var(--kis-space-4);
+
+}
+/* ==========================================================
+   LAYOUT
+   ========================================================== */
+
+.kis-app{
+    display:flex;
+    min-height:100vh;
+    background:var(--kis-bg);
+}
+
+.kis-sidebar{
+    position:fixed;
+    top:0;
+    left:0;
+    bottom:0;
+    width:var(--kis-sidebar-width);
+    background:var(--kis-primary);
+    color:var(--kis-surface);
+    overflow-y:auto;
+    transition:var(--kis-transition);
+    z-index:var(--kis-z-sidebar);
+}
+
+.kis-main{
+    flex:1;
+    margin-left:var(--kis-sidebar-width);
+    display:flex;
+    flex-direction:column;
+    min-height:100vh;
+}
+
+.kis-content{
+    flex:1;
+    padding:var(--kis-space-6);
+}
+
+.kis-container{
+    width:100%;
+    max-width:1400px;
+    margin:0 auto;
+}
+
+.kis-page{
+    display:flex;
+    flex-direction:column;
+    gap:var(--kis-space-6);
+}
+
+.kis-section{
+    margin-bottom:var(--kis-space-6);
+}
+/* ==========================================================
+   SIDEBAR
+   ========================================================== */
+
+.kis-sidebar-header{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:20px 16px 18px;
+    border-bottom:1px solid rgba(255,255,255,.10);
+}
+
+.kis-logo{
+    flex:0 0 56px;
+    width:56px;
+    height:56px;
+    object-fit:contain;
+    display:block;
+}
+
+.kis-sidebar-identity{
+    min-width:0;
+    flex:1;
+}
+
+.kis-sidebar-title{
+    color:var(--kis-surface);
+    font-size:1.05rem;
+    font-weight:700;
+    line-height:1.2;
+    white-space:nowrap;
+}
+
+.kis-sidebar-subtitle{
+    margin-top:4px;
+    color:rgba(255,255,255,.70);
+    font-size:.82rem;
+    line-height:1.2;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.kis-sidebar-menu{
+    list-style:none;
+    padding:var(--kis-space-4);
+}
+
+.kis-sidebar-menu li{
+    margin-bottom:var(--kis-space-2);
+}
+
+.kis-sidebar-menu a{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:12px 16px;
+    color:rgba(255,255,255,.85);
+    border-radius:var(--kis-radius);
+    transition:var(--kis-transition);
+}
+
+.kis-sidebar-menu a:hover{
+    background:rgba(255,255,255,.10);
+    color:var(--kis-surface);
+}
+
+.kis-sidebar-menu a.active{
+    background:var(--kis-surface);
+    color:var(--kis-primary);
+    font-weight:600;
+}
+
+/* ==========================================================
+   NAVBAR
+   ========================================================== */
+
+.kis-navbar{
+    height:var(--kis-navbar-height);
+    background:var(--kis-surface);
+    border-bottom:1px solid var(--kis-border);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 var(--kis-space-6);
+    box-shadow:var(--kis-shadow-sm);
+}
+
+.kis-navbar-left,
+.kis-navbar-right{
+    display:flex;
+    align-items:center;
+    gap:var(--kis-space-4);
+}
+
+.kis-navbar-title{
+    font-size:1.1rem;
+    font-weight:600;
+}
+
+.kis-avatar{
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    object-fit:cover;
+}
+
+.kis-text-muted{
+    color:var(--kis-text-muted);
+}
+
+.kis-navbar small{
+    font-size:.85rem;
+}
+
+/* ==========================================================
+   PAGE HEADER
+   ========================================================== */
+
+.kis-page-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:var(--kis-space-4);
+    margin-bottom:var(--kis-space-6);
+}
+
+.kis-page-title{
+    margin:0;
+    font-size:1.8rem;
+    font-weight:700;
+    color:var(--kis-text);
+}
+
+.kis-page-subtitle{
+    margin-top:4px;
+    color:var(--kis-text-muted);
+    font-size:.95rem;
+}
+/* ==========================================================
+   CARDS
+   ========================================================== */
+
+.kis-card{
+    background:var(--kis-surface);
+    border:1px solid var(--kis-border);
+    border-radius:var(--kis-radius-lg);
+    box-shadow:var(--kis-shadow);
+    transition:var(--kis-transition);
+    overflow:hidden;
+}
+
+.kis-card:hover{
+    transform:translateY(-3px);
+    box-shadow:var(--kis-shadow-lg);
+}
+
+.kis-card-header{
+    padding:var(--kis-space-5);
+    border-bottom:1px solid var(--kis-border);
+    font-size:1rem;
+    font-weight:600;
+}
+
+.kis-card-body{
+    padding:var(--kis-space-5);
+}
+
+.kis-card-footer{
+    padding:var(--kis-space-5);
+    border-top:1px solid var(--kis-border);
+    background:var(--kis-bg);
+}
+/* ==========================================================
+   STAT CARD
+   ========================================================== */
+
+.kis-stat-card{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:var(--kis-space-5);
+}
+
+.kis-stat-icon{
+    width:56px;
+    height:56px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(21,101,192,.10);
+    color:var(--kis-primary-hover);
+    font-size:1.4rem;
+}
+
+.kis-stat-content{
+    flex:1;
+    margin-left:var(--kis-space-4);
+}
+
+.kis-stat-value{
+    font-size:2rem;
+    font-weight:700;
+    line-height:1;
+}
+
+.kis-stat-title{
+    margin-top:6px;
+    color:var(--kis-text-muted);
+    font-size:.90rem;
+}
+
+/* ==========================================================
+   BUTTONS
+   ========================================================== */
+
+.kis-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:10px 18px;
+    border:none;
+    border-radius:var(--kis-radius);
+    cursor:pointer;
+    text-decoration:none;
+    transition:var(--kis-transition);
+    font-weight:500;
+}
+
+.kis-btn-primary{
+    background:var(--kis-primary);
+    color:var(--kis-surface);
+}
+
+.kis-btn-primary:hover{
+    background:var(--kis-primary-hover);
+}
+
+.kis-btn-success{
+    background:var(--kis-success);
+    color:var(--kis-surface);
+}
+
+.kis-btn-danger{
+    background:var(--kis-danger);
+    color:var(--kis-surface);
+}
+
+.kis-btn-warning{
+    background:var(--kis-warning);
+    color:#212529;
+}
+
+.kis-btn-outline{
+    background:transparent;
+    border:1px solid var(--kis-border);
+    color:var(--kis-text);
+}
+
+.kis-btn-outline:hover{
+    background:var(--kis-bg);
+}
+
+/* ==========================================================
+   FORMS
+   ========================================================== */
+
+.kis-form-group{
+    margin-bottom:var(--kis-space-5);
+}
+
+.kis-label{
+    display:block;
+    margin-bottom:var(--kis-space-2);
+    font-weight:600;
+    color:var(--kis-text);
+}
+
+.kis-input,
+.kis-select,
+.kis-textarea{
+
+    width:100%;
+
+    padding:12px 14px;
+
+    border:1px solid var(--kis-border);
+
+    border-radius:var(--kis-radius);
+
+    background:var(--kis-surface);
+
+    color:var(--kis-text);
+
+    transition:var(--kis-transition);
+
+}
+
+.kis-input:focus,
+.kis-select:focus,
+.kis-textarea:focus{
+
+    outline:none;
+
+    border-color:var(--kis-primary-hover);
+
+    box-shadow:0 0 0 3px rgba(21,101,192,.15);
+
+}
+
+.kis-input:disabled,
+.kis-select:disabled,
+.kis-textarea:disabled{
+
+    background:#f1f3f5;
+
+    cursor:not-allowed;
+
+}
+
+.kis-textarea{
+
+    resize:vertical;
+
+    min-height:120px;
+
+}
+
+/* ==========================================================
+   TABLES
+   ========================================================== */
+
+.kis-table-wrapper{
+
+    overflow-x:auto;
+
+}
+
+.kis-table{
+
+    width:100%;
+
+    border-collapse:collapse;
+
+    background:var(--kis-surface);
+
+    font-size:12px;
+
+}
+
+.kis-table thead{
+
+    background:var(--kis-primary);
+
+    color:var(--kis-surface);
+
+}
+
+.kis-table th{
+
+    padding:14px;
+
+    text-align:left;
+
+    font-weight:600;
+
+}
+
+.kis-table td{
+
+    padding:14px;
+
+    border-bottom:1px solid var(--kis-border);
+
+}
+
+.kis-table tbody tr{
+
+    transition:var(--kis-transition);
+
+}
+
+.kis-table tbody tr:hover{
+
+    background:var(--kis-bg);
+
+}
+
+.kis-table-striped tbody tr:nth-child(even){
+
+    background:var(--kis-bg);
+
+}
+
+/* ==========================================================
+   BADGES
+   ========================================================== */
+
+.kis-badge{
+
+    display:inline-block;
+
+    padding:4px 10px;
+
+    border-radius:999px;
+
+    font-size:.80rem;
+
+    font-weight:600;
+
+}
+
+.kis-badge-primary{
+
+    background:var(--kis-primary);
+
+    color:var(--kis-surface);
+
+}
+
+.kis-badge-success{
+
+    background:var(--kis-success);
+
+    color:var(--kis-surface);
+
+}
+
+.kis-badge-danger{
+
+    background:var(--kis-danger);
+
+    color:var(--kis-surface);
+
+}
+
+.kis-badge-warning{
+
+    background:var(--kis-warning);
+
+    color:#212529;
+
+}
+
+/* ==========================================================
+   TABS
+   Onglets de sélection (ex. matière pour la saisie des notes) :
+   remplace une simple rangée de boutons par des onglets ordonnés,
+   plus lisibles quand il y a de nombreuses matières.
+   ========================================================== */
+
+.kis-tabs{
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:2px;
+
+    border-bottom:2px solid var(--kis-border);
+
+    margin-bottom:4px;
+
+}
+
+.kis-tab{
+
+    display:inline-block;
+
+    padding:8px 16px;
+
+    font-size:.92rem;
+
+    font-weight:600;
+
+    color:var(--kis-text-muted);
+
+    text-decoration:none;
+
+    border:1px solid transparent;
+
+    border-bottom:none;
+
+    border-top-left-radius:var(--kis-radius-sm);
+
+    border-top-right-radius:var(--kis-radius-sm);
+
+    margin-bottom:-2px;
+
+}
+
+.kis-tab:hover{
+
+    color:var(--kis-primary);
+
+    background:var(--kis-bg);
+
+}
+
+.kis-tab-active{
+
+    color:var(--kis-primary);
+
+    background:var(--kis-surface);
+
+    border-color:var(--kis-border);
+
+    border-bottom:2px solid var(--kis-surface);
+
+}
+
+/* ==========================================================
+   ALERTS
+   ========================================================== */
+
+.kis-alert{
+
+    padding:16px 18px;
+
+    border-radius:var(--kis-radius);
+
+    margin-bottom:var(--kis-space-5);
+
+    border-left:5px solid;
+
+}
+
+.kis-alert-success{
+
+    background:#e8f5e9;
+
+    border-color:var(--kis-success);
+
+}
+
+.kis-alert-danger{
+
+    background:#fdecea;
+
+    border-color:var(--kis-danger);
+
+}
+
+.kis-alert-warning{
+
+    background:#fff8e1;
+
+    border-color:var(--kis-warning);
+
+}
+
+.kis-alert-info{
+
+    background:#e3f2fd;
+
+    border-color:var(--kis-info);
+
+}
+
+/* ==========================================================
+   UTILITIES
+   ========================================================== */
+
+.d-flex{display:flex;}
+.flex-column{flex-direction:column;}
+
+.justify-between{justify-content:space-between;}
+.justify-center{justify-content:center;}
+
+.align-center{align-items:center;}
+
+.text-center{text-align:center;}
+.text-end{text-align:right;}
+
+.w-100{width:100%;}
+
+.mt-1{margin-top:var(--kis-space-1);}
+.mt-2{margin-top:var(--kis-space-2);}
+.mt-3{margin-top:var(--kis-space-3);}
+.mt-4{margin-top:var(--kis-space-4);}
+.mt-5{margin-top:var(--kis-space-5);}
+
+.mb-1{margin-bottom:var(--kis-space-1);}
+.mb-2{margin-bottom:var(--kis-space-2);}
+.mb-3{margin-bottom:var(--kis-space-3);}
+.mb-4{margin-bottom:var(--kis-space-4);}
+.mb-5{margin-bottom:var(--kis-space-5);}
+
+.p-1{padding:var(--kis-space-1);}
+.p-2{padding:var(--kis-space-2);}
+.p-3{padding:var(--kis-space-3);}
+.p-4{padding:var(--kis-space-4);}
+.p-5{padding:var(--kis-space-5);}
+
+/* ==========================================================
+   RESPONSIVE
+   ========================================================== */
+
+@media (max-width:992px){
+
+    .kis-sidebar{
+
+        width:80px;
+
+    }
+
+    .kis-main{
+
+        margin-left:80px;
+
+    }
+
+}
+
+@media (max-width:768px){
+
+    .kis-sidebar{
+
+        position:relative;
+
+        width:100%;
+
+        min-height:auto;
+
+    }
+
+    .kis-main{
+
+        margin-left:0;
+
+    }
+
+    .kis-page-header{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+    }
+
+    .kis-content{
+
+        padding:var(--kis-space-4);
+
+    }
+
+}
+
+/* ==========================================================
+   GRID SYSTEM
+   ========================================================== */
+
+.kis-grid{
+    display:grid;
+    gap:24px;
+}
+
+.kis-grid-2{
+    grid-template-columns:repeat(auto-fit,minmax(420px,1fr));
+}
+
+.kis-grid-3{
+    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+}
+
+.kis-grid-4{
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+}
+
+.kis-col{
+    width:100%;
+}
+
+/* ==========================================================
+   KIS DROPDOWN
+   ========================================================== */
+
+.kis-dropdown{
+    position:relative;
+}
+
+.kis-dropdown-toggle{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    cursor:pointer;
+}
+
+.kis-dropdown-menu{
+
+    position:absolute;
+
+    top:110%;
+
+    right:0;
+
+    min-width:230px;
+
+    background:var(--kis-surface);
+
+    border:1px solid var(--kis-border);
+
+    border-radius:var(--kis-radius);
+
+    box-shadow:var(--kis-shadow-lg);
+
+    display:none;
+
+    overflow:hidden;
+
+    z-index:var(--kis-z-dropdown);
+
+}
+
+.kis-dropdown-menu.show{
+    display:block;
+}
+
+.kis-dropdown-item{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+    padding:12px 18px;
+
+    transition:var(--kis-transition);
+
+    cursor:pointer;
+
+}
+
+.kis-dropdown-item:hover{
+
+    background:var(--kis-bg);
+
+}
+
+.kis-dropdown-divider{
+
+    height:1px;
+
+    background:var(--kis-border);
+
+}
+
+/* ==========================================================
+   FORM LAYOUT
+   ========================================================== */
+
+.kis-form{
+
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+
+}
+
+.kis-form-row{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+
+    gap:20px;
+
+}
+
+.kis-form-actions{
+
+    display:flex;
+
+    justify-content:flex-end;
+
+    gap:12px;
+
+    margin-top:20px;
+
+}
+
+.kis-required{
+
+    color:var(--kis-danger);
+
+}
+
+.kis-help{
+
+    font-size:.85rem;
+
+    color:var(--kis-text-muted);
+
+    margin-top:6px;
+
+}
+
+/* ==========================================================
+   FOOTER
+   ========================================================== */
+
+.kis-footer{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:18px 30px;
+
+    background:var(--kis-surface);
+
+    border-top:1px solid var(--kis-border);
+
+    font-size:.90rem;
+
+}
+
+.kis-footer-left{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+}
+
+.kis-footer-right{
+
+    color:var(--kis-text-muted);
+
+}
+
+@media(max-width:768px){
+
+    .kis-footer{
+
+        flex-direction:column;
+
+        gap:10px;
+
+        text-align:center;
+
+    }
+
+}
+
+/* ==========================================================
+   EMPTY STATE
+   ========================================================== */
+
+.kis-empty-state{
+
+    padding:70px 30px;
+
+    text-align:center;
+
+    background:var(--kis-surface);
+
+    border:1px solid var(--kis-border);
+
+    border-radius:var(--kis-radius-lg);
+
+}
+
+.kis-empty-icon{
+
+    width:90px;
+
+    height:90px;
+
+    margin:auto;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    border-radius:50%;
+
+    background:#EEF5FF;
+
+    color:var(--kis-primary);
+
+    margin-bottom:25px;
+
+}
+
+.kis-empty-icon svg{
+
+    width:42px;
+
+    height:42px;
+
+}
+
+.kis-empty-title{
+
+    font-size:1.4rem;
+
+    margin-bottom:12px;
+
+}
+
+.kis-empty-text{
+
+    max-width:500px;
+
+    margin:auto auto 30px;
+
+    color:var(--kis-text-muted);
+
+}
+
+/* ==========================================================
+   BOOTSTRAP / FIRST CONFIGURATION
+   ========================================================== */
+
+.kis-bootstrap-main{
+    width:100%;
+    min-height:100vh;
+    padding:48px 24px 64px;
+    background:
+        radial-gradient(circle at 10% 0%, rgba(21,101,192,.10), transparent 32%),
+        linear-gradient(180deg, #f8fafc 0%, var(--kis-bg) 100%);
+}
+
+.kis-bootstrap-container{
+    width:100%;
+    max-width:1080px;
+    margin:0 auto;
+}
+
+.kis-bootstrap-page{
+    display:flex;
+    flex-direction:column;
+    gap:24px;
+}
+
+.kis-bootstrap-header{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:24px;
+}
+
+.kis-bootstrap-brand{
+    display:flex;
+    align-items:center;
+    gap:18px;
+}
+
+.kis-bootstrap-logo{
+    width:72px;
+    height:72px;
+    flex:0 0 72px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#fff;
+    border:1px solid var(--kis-border);
+    border-radius:18px;
+    box-shadow:var(--kis-shadow-sm);
+    overflow:hidden;
+}
+
+.kis-bootstrap-logo img{
+    width:58px;
+    height:58px;
+    object-fit:contain;
+}
+
+.kis-eyebrow{
+    margin-bottom:4px;
+    color:var(--kis-primary-hover);
+    font-size:.76rem;
+    font-weight:800;
+    letter-spacing:.12em;
+}
+
+.kis-bootstrap-header h1{
+    margin-bottom:4px;
+    color:var(--kis-primary);
+    font-size:clamp(1.7rem, 3vw, 2.25rem);
+    font-weight:700;
+}
+
+.kis-bootstrap-header p{
+    margin:0;
+    max-width:680px;
+    font-size:.98rem;
+}
+
+.kis-bootstrap-step{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 14px;
+    background:#fff;
+    border:1px solid var(--kis-border);
+    border-radius:12px;
+    box-shadow:var(--kis-shadow-sm);
+    white-space:nowrap;
+}
+
+.kis-step-badge{
+    width:30px;
+    height:30px;
+    display:grid;
+    place-items:center;
+    border-radius:50%;
+    background:var(--kis-primary);
+    color:#fff;
+    font-weight:700;
+}
+
+.kis-bootstrap-step strong,
+.kis-bootstrap-step small{
+    display:block;
+}
+
+.kis-bootstrap-step strong{
+    color:var(--kis-text);
+    font-size:.9rem;
+}
+
+.kis-bootstrap-step small{
+    color:var(--kis-text-muted);
+    font-size:.76rem;
+}
+
+.kis-bootstrap-card{
+    overflow:hidden;
+    background:#fff;
+    border:1px solid rgba(222,226,230,.9);
+    border-radius:18px;
+    box-shadow:var(--kis-shadow);
+}
+
+.kis-bootstrap-card-header{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:24px;
+    padding:28px 32px 22px;
+    border-bottom:1px solid var(--kis-border);
+}
+
+.kis-bootstrap-card-header h2{
+    margin-bottom:4px;
+    color:var(--kis-primary);
+    font-size:1.15rem;
+}
+
+.kis-bootstrap-card-header p{
+    margin:0;
+    font-size:.88rem;
+}
+
+.kis-required-note{
+    color:var(--kis-text-muted);
+    font-size:.78rem;
+    white-space:nowrap;
+}
+
+.kis-required-note span,
+.kis-required{
+    color:var(--kis-danger);
+}
+
+.kis-bootstrap-card form{
+    padding:28px 32px 32px;
+}
+
+.kis-form-grid{
+    display:grid;
+    gap:20px 24px;
+}
+
+.kis-form-grid-2{
+    grid-template-columns:repeat(2, minmax(0,1fr));
+}
+
+.kis-form-span-2{
+    grid-column:1 / -1;
+}
+
+.kis-form-group{
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+}
+
+.kis-form-group label{
+    color:#334155;
+    font-size:.88rem;
+    font-weight:600;
+}
+
+.kis-form-group input:not([type="checkbox"]):not([type="radio"]),
+.kis-form-group select,
+.kis-form-group textarea{
+    width:100%;
+    min-height:44px;
+    padding:10px 13px;
+    color:var(--kis-text);
+    background:#fff;
+    border:1px solid #cbd5e1;
+    border-radius:9px;
+    outline:none;
+    transition:border-color var(--kis-transition), box-shadow var(--kis-transition), background var(--kis-transition);
+}
+
+.kis-form-group input[type="file"]{
+    min-height:44px;
+    padding:8px 10px;
+    background:#f8fafc;
+}
+
+.kis-form-group input:focus,
+.kis-form-group select:focus,
+.kis-form-group textarea:focus{
+    border-color:var(--kis-primary-hover);
+    box-shadow:0 0 0 3px rgba(21,101,192,.10);
+}
+
+.kis-form-group textarea{
+    min-height:100px;
+    resize:vertical;
+}
+
+.kis-form-help{
+    color:var(--kis-text-muted);
+    font-size:.78rem;
+}
+
+.kis-text-danger{
+    color:var(--kis-danger);
+    font-size:.78rem;
+}
+
+.kis-bootstrap-actions{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    margin-top:30px;
+    padding-top:24px;
+    border-top:1px solid var(--kis-border);
+}
+
+.kis-form-actions-note{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:var(--kis-text-muted);
+    font-size:.8rem;
+}
+
+.kis-info-dot{
+    width:20px;
+    height:20px;
+    display:grid;
+    place-items:center;
+    flex:0 0 20px;
+    border:1px solid #cbd5e1;
+    border-radius:50%;
+    color:var(--kis-primary-hover);
+    font-size:.72rem;
+    font-weight:700;
+}
+
+.kis-btn-lg{
+    min-height:46px;
+    padding:11px 18px;
+}
+
+.kis-public-main{
+    width:100%;
+    min-height:100vh;
+}
+
+@media (max-width: 760px){
+    .kis-bootstrap-main{padding:28px 14px 44px;}
+    .kis-bootstrap-header{align-items:flex-start; flex-direction:column;}
+    .kis-bootstrap-step{width:100%;}
+    .kis-bootstrap-card-header{padding:22px 20px 18px; flex-direction:column;}
+    .kis-bootstrap-card form{padding:22px 20px 24px;}
+    .kis-form-grid-2{grid-template-columns:1fr;}
+    .kis-form-span-2{grid-column:auto;}
+    .kis-bootstrap-actions{align-items:stretch; flex-direction:column;}
+    .kis-bootstrap-actions .kis-btn{width:100%;}
+}
+
+/* ==========================================================
+   SCHOOL SETUP - FORM CONTROLS
+   ========================================================== */
+
+.kis-bootstrap-main .kis-bootstrap-page,
+.kis-bootstrap-main .kis-bootstrap-page *{
+    box-sizing:border-box;
+}
+
+.kis-bootstrap-main .kis-bootstrap-logo img{
+    width:58px !important;
+    height:58px !important;
+    max-width:58px !important;
+    max-height:58px !important;
+    object-fit:contain !important;
+}
+
+.kis-bootstrap-main .kis-form-grid{
+    width:100%;
+}
+
+.kis-bootstrap-main .kis-form-group{
+    width:100%;
+    min-width:0;
+    margin:0;
+}
+
+.kis-bootstrap-main .kis-form-group .kis-label{
+    display:block;
+    margin:0 0 7px;
+    color:#334155;
+    font-size:.9rem;
+    line-height:1.35;
+    font-weight:650;
+}
+
+.kis-bootstrap-main .kis-form-group .kis-input,
+.kis-bootstrap-main .kis-form-group .kis-select,
+.kis-bootstrap-main .kis-form-group .kis-textarea,
+.kis-bootstrap-main .kis-form-group input[type="text"],
+.kis-bootstrap-main .kis-form-group input[type="email"],
+.kis-bootstrap-main .kis-form-group input[type="tel"],
+.kis-bootstrap-main .kis-form-group input[type="number"],
+.kis-bootstrap-main .kis-form-group select,
+.kis-bootstrap-main .kis-form-group textarea{
+    display:block !important;
+    width:100% !important;
+    min-width:0 !important;
+    min-height:46px !important;
+    height:46px;
+    padding:11px 14px !important;
+    border:1px solid #cbd5e1 !important;
+    border-radius:10px !important;
+    background:#fff !important;
+    color:#263449 !important;
+    box-shadow:none !important;
+    outline:none !important;
+    appearance:auto;
+    transition:border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+.kis-bootstrap-main .kis-form-group textarea,
+.kis-bootstrap-main .kis-form-group .kis-textarea{
+    height:auto;
+    min-height:110px !important;
+    resize:vertical;
+}
+
+.kis-bootstrap-main .kis-form-group .kis-input::placeholder,
+.kis-bootstrap-main .kis-form-group input::placeholder,
+.kis-bootstrap-main .kis-form-group textarea::placeholder{
+    color:#94a3b8;
+    opacity:1;
+}
+
+.kis-bootstrap-main .kis-form-group .kis-input:focus,
+.kis-bootstrap-main .kis-form-group .kis-select:focus,
+.kis-bootstrap-main .kis-form-group textarea:focus,
+.kis-bootstrap-main .kis-form-group input[type="text"]:focus,
+.kis-bootstrap-main .kis-form-group input[type="email"]:focus,
+.kis-bootstrap-main .kis-form-group input[type="tel"]:focus,
+.kis-bootstrap-main .kis-form-group select:focus{
+    border-color:#1565c0 !important;
+    box-shadow:0 0 0 3px rgba(21,101,192,.12) !important;
+}
+
+.kis-bootstrap-main .kis-form-group-error .kis-input,
+.kis-bootstrap-main .kis-form-group-error .kis-select,
+.kis-bootstrap-main .kis-form-group-error textarea{
+    border-color:#dc3545 !important;
+}
+
+.kis-file-box{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    width:100%;
+    min-height:88px;
+    padding:14px 16px;
+    border:1px dashed #b9c7d9;
+    border-radius:12px;
+    background:#f8fafc;
+}
+
+.kis-file-icon{
+    width:42px;
+    height:42px;
+    flex:0 0 42px;
+    display:grid;
+    place-items:center;
+    border-radius:10px;
+    background:#e8f1ff;
+    color:#1565c0;
+    font-size:1.25rem;
+    font-weight:700;
+}
+
+.kis-file-content{
+    flex:1;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+}
+
+.kis-file-content strong{
+    color:#334155;
+    font-size:.9rem;
+}
+
+.kis-file-content span{
+    color:#64748b;
+    font-size:.76rem;
+}
+
+.kis-file-content input[type="file"],
+.kis-file-input{
+    display:block !important;
+    width:100% !important;
+    min-height:40px !important;
+    margin-top:6px;
+    padding:6px !important;
+    border:1px solid #cbd5e1 !important;
+    border-radius:8px !important;
+    background:#fff !important;
+    color:#475569 !important;
+    font-size:.82rem;
+}
+
+.kis-bootstrap-main .kis-bootstrap-actions .kis-btn{
+    min-width:210px;
+    justify-content:center;
+}
+
+@media(max-width:760px){
+    .kis-bootstrap-main .kis-form-grid-2{
+        grid-template-columns:1fr;
+    }
+    .kis-bootstrap-main .kis-form-span-2{
+        grid-column:auto;
+    }
+    .kis-file-box{
+        align-items:flex-start;
+    }
+}
+
+/* Navigation groupée — MVP */
+.kis-sidebar-nav{flex:1;overflow-y:auto;min-height:0;}
+.kis-sidebar-group{margin-top:3px;}
+.kis-sidebar-group details{margin:0;}
+.kis-sidebar-group summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;color:var(--kis-text);font-weight:600;user-select:none;}
+.kis-sidebar-group summary::-webkit-details-marker{display:none;}
+.kis-sidebar-group summary i:first-child{width:18px;height:18px;flex:0 0 18px;color:var(--kis-primary-hover);}
+.kis-sidebar-chevron{margin-left:auto;width:15px!important;height:15px!important;transition:transform .15s ease;}
+.kis-sidebar-group details[open] .kis-sidebar-chevron{transform:rotate(180deg);}
+.kis-sidebar-group summary:hover{background:rgba(255,255,255,.07);}
+.kis-sidebar-submenu{display:flex;flex-direction:column;gap:2px;margin:2px 0 6px 30px;padding-left:13px;border-left:1px solid rgba(255,255,255,.14);}
+.kis-sidebar-submenu a{display:block;padding:8px 11px;border-radius:8px;color:var(--kis-text-muted);font-size:.88rem;text-decoration:none;}
+.kis-sidebar-submenu a:hover{background:rgba(255,255,255,.07);color:var(--kis-text);}
+.kis-sidebar-submenu a.active{background:rgba(255,255,255,.11);color:#fff;font-weight:600;}
+
+/* ==========================================================
+   J11 — Navigation contextuelle et hiérarchie visuelle
+   ========================================================== */
+
+.kis-sidebar-group { margin-bottom: var(--kis-space-2); }
+
+.kis-sidebar-main-link{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    min-height:46px;
+    padding:12px 16px;
+    color:rgba(255,255,255,.92);
+    border:1px solid transparent;
+    border-radius:var(--kis-radius);
+    font-weight:500;
+}
+
+.kis-sidebar-main-link i{
+    width:20px;
+    height:20px;
+    flex:0 0 20px;
+}
+
+.kis-sidebar-main-link:hover{
+    background:rgba(255,255,255,.12);
+    color:#fff;
+    border-color:rgba(255,255,255,.08);
+}
+
+.kis-sidebar-main-link.active{
+    background:#fff;
+    color:var(--kis-primary);
+    font-weight:700;
+    box-shadow:0 2px 8px rgba(0,0,0,.12);
+}
+
+/* Onglets de la section : une seule navigation secondaire, dans le contenu. */
+.kis-context-tabs{
+    display:flex;
+    align-items:center;
+    gap:4px;
+    margin:0 0 14px;
+    padding:4px;
+    background:#e9eef5;
+    border:1px solid #d5dde8;
+    border-radius:12px;
+    overflow-x:auto;
+}
+
+.kis-context-tabs a{
+    flex:0 0 auto;
+    padding:9px 15px;
+    border-radius:9px;
+    color:#425466;
+    font-size:.9rem;
+    font-weight:600;
+    white-space:nowrap;
+}
+
+.kis-context-tabs a:hover{
+    background:#f8fafc;
+    color:var(--kis-primary);
+}
+
+.kis-context-tabs a.active{
+    background:var(--kis-primary);
+    color:#fff;
+    box-shadow:0 2px 5px rgba(15,45,92,.18);
+}
+
+.kis-content{
+    background:linear-gradient(to bottom,#f7f9fc 0,#f4f6f9 180px);
+}
+
+@media(max-width:760px){
+    .kis-context-tabs a{padding:8px 12px;font-size:.84rem;}
+}
+
+
+/* J13 — Modals métier / parcours secondaires */
+.kis-modal{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px}
+.kis-modal[hidden]{display:none}
+.kis-modal-backdrop{position:absolute;inset:0;background:rgba(15,23,42,.52);backdrop-filter:blur(2px)}
+.kis-modal-dialog{position:relative;width:min(620px,100%);max-height:min(88vh,760px);overflow:auto;background:#fff;border:1px solid #dbe2ea;border-radius:16px;box-shadow:0 24px 70px rgba(15,23,42,.28)}
+.kis-modal-header{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid #e5eaf0;position:sticky;top:0;background:#fff;z-index:1}
+.kis-modal-header h2{margin:0;font-size:1.15rem;color:var(--kis-primary,#0f2d5c)}
+.kis-modal-close{border:0;background:transparent;font-size:28px;line-height:1;color:#64748b;cursor:pointer;padding:2px 6px}
+.kis-modal-body{padding:22px}
+.kis-modal-loading{text-align:center;color:#64748b;padding:30px}
+.kis-modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid #e5eaf0}
+
+/* Première configuration financière — tarifs de base par secteur */
+.kis-finance-base-table{border:1px solid #e2e8f0;border-radius:12px;overflow:hidden}
+.kis-finance-base-row[hidden]{display:none !important}
+.kis-finance-base-head,.kis-finance-base-row{display:grid;grid-template-columns:minmax(180px,1.4fr) minmax(150px,1fr) minmax(150px,1fr);gap:16px;align-items:center;padding:12px 16px}
+.kis-finance-base-head{background:#f8fafc;font-size:.82rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.03em}
+.kis-finance-base-row{border-top:1px solid #edf2f7}
+.kis-finance-base-row:first-of-type{border-top:0}
+.kis-finance-base-row .kis-form-group{margin:0}
+.kis-option-summary{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 14px;border:1px solid #e2e8f0;border-radius:10px;background:#fff;margin-top:8px}
+.kis-option-summary span{font-weight:600;white-space:nowrap}
+.kis-option-summary:first-child{margin-top:0}
+@media (max-width:700px){.kis-finance-base-head{display:none}.kis-finance-base-row{grid-template-columns:1fr;gap:6px}.kis-finance-base-row strong{margin-bottom:4px}.kis-option-summary{align-items:flex-start;flex-direction:column;gap:4px}}
+
+.kis-check-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:8px; margin-top:8px; }
+.kis-check-item { display:flex; align-items:center; gap:7px; padding:8px 10px; border:1px solid #ddd; border-radius:6px; }
+.kis-check-item small { margin-left:auto; opacity:.7; }
+
+/* J65 — lisibilité interface et identité visuelle */
+.kis-logo{flex-basis:68px;width:68px;height:68px}
+.kis-sidebar-header{gap:14px}
+.kis-sidebar-title{font-size:1.15rem}
+.kis-sidebar-subtitle{font-size:.9rem}
+
+/* Personnel : onglet réservé au futur module du personnel non enseignant. */
+.kis-context-tabs .kis-context-tab-disabled{
+    display:inline-flex;
+    align-items:center;
+    padding:10px 16px;
+    border-radius:10px;
+    color:#7b8794;
+    cursor:default;
+    user-select:none;
+}
+
+/* ==========================================================
+   ERGONOMIE (retours du 08/10) : Retour unique, boutons lisibles, actions groupées
+   ========================================================== */
+.kis-back{
+    display:inline-flex; align-items:center; gap:6px;
+    margin:0 0 12px; padding:6px 12px 6px 8px;
+    color:var(--kis-primary); font-weight:600; text-decoration:none;
+    border-radius:8px; background:transparent;
+}
+.kis-back:hover{ background:#E8EEF7; }
+
+/* Bouton secondaire : un cadre visible, pour ne plus ressembler à un simple texte. */
+.kis-btn{
+    background:var(--kis-surface);
+    border:1px solid var(--kis-border);
+    color:var(--kis-text, #212529);
+    line-height:1.25;
+}
+.kis-btn:hover{ background:#F1F4F9; border-color:#C7CFDA; }
+.kis-btn-primary{ background:var(--kis-primary); color:var(--kis-surface); border-color:transparent; }
+.kis-btn-success{ background:var(--kis-success); color:var(--kis-surface); border-color:transparent; }
+.kis-btn-danger{ background:var(--kis-danger); color:var(--kis-surface); border-color:transparent; }
+.kis-btn-warning{ background:var(--kis-warning); color:#212529; border-color:transparent; }
+.kis-btn-outline{ background:transparent; }
+.kis-btn-primary:hover{ background:var(--kis-primary-hover); border-color:transparent; }
+.kis-btn-danger:hover{ background:#B52A37; border-color:transparent; }
+.kis-btn-sm{ padding:6px 11px; font-size:13px; }
+/* Action sensible discrète (suppression d'une ligne) : rouge mais pas criard. */
+.kis-btn-danger-soft{ background:var(--kis-surface); color:var(--kis-danger); border:1px solid #F1B0B7; }
+.kis-btn-danger-soft:hover{ background:#FDECEE; color:#B52A37; border-color:#E68A94; }
+
+/* Barre d'actions : groupes étiquetés, toujours au même endroit sous le titre. */
+.kis-actionbar{ display:flex; flex-wrap:wrap; gap:10px 18px; align-items:flex-start; margin:-6px 0 18px; }
+.kis-actiongroup{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding:8px 10px;
+    background:var(--kis-surface); border:1px solid var(--kis-border); border-radius:12px; }
+.kis-actiongroup > .kis-actiongroup-label{ font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+    color:var(--kis-text-muted); margin-right:4px; }
+.kis-actiongroup-danger{ border-color:#F1B0B7; background:#FFF8F8; }
+.kis-cell-actions{ display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+.kis-subtitle{ margin:4px 0 0; color:var(--kis-text-muted); }
+.kis-year-select{ margin-top:2px; padding:2px 6px; border:1px solid var(--kis-border); border-radius:6px; background:var(--kis-surface); color:var(--kis-text-muted); font-size:13px; }
+
+/* Postes d un frais (09/10) */
+.kis-table tr.kis-subline td{background:#FAFBFD;font-size:13px;padding-top:4px;padding-bottom:4px;border-top:none}
+.kis-fee-parts{margin-top:6px;font-size:13px}
+.kis-fee-parts summary{cursor:pointer;color:#1565C0}
+.kis-fee-parts p{margin:6px 0;font-size:12px}
+.kis-fee-part{display:grid;grid-template-columns:1fr 110px;gap:6px;margin-bottom:4px}
+/* WhatsApp (V8-6) */
+.kis-btn-whatsapp{background:#25D366 !important;border-color:#1EBE5A !important;color:#fff !important}
+.kis-btn-whatsapp:hover{background:#1EBE5A !important}
+.kis-btn-whatsapp.kis-wa-sent{background:#E8F7EE !important;color:#167A3E !important;border-color:#9AD9B2 !important}

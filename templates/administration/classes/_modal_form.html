@@ -1,0 +1,17 @@
+<form method="post" action="{% url 'classe_modal' %}{% if list_mode %}?list=1{% endif %}" hx-post="{% url 'classe_modal' %}{% if list_mode %}?list=1{% endif %}" hx-target="#kis-modal-body" hx-swap="innerHTML" data-modal-form>
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="kis-alert kis-alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+  <p class="kis-text-muted">Année active : <strong>{{ school_year.name }}</strong>. La classe sera disponible immédiatement dans l'inscription.</p>
+  {% if not school_year.catalog_is_validated %}
+    <p class="kis-text-muted">Référentiel pas encore validé — <a href="{% url 'school_year_catalog' school_year.id %}" target="_blank" rel="noopener">le vérifier</a> si besoin.</p>
+  {% endif %}
+  {% for f in form %}
+    <div class="kis-form-group{% if f.errors %} kis-form-group-error{% endif %}">
+      <label class="kis-label" for="{{ f.id_for_label }}">{{ f.label }}{% if f.field.required %} *{% endif %}</label>
+      {{ f }}
+      {% if f.help_text %}<small class="kis-form-help">{{ f.help_text }}</small>{% endif %}
+      {% for error in f.errors %}<small class="kis-text-danger">{{ error }}</small>{% endfor %}
+    </div>
+  {% endfor %}
+  <div class="kis-modal-actions"><button type="button" class="kis-btn" data-modal-close>Annuler</button><button type="submit" class="kis-btn kis-btn-primary">Créer la classe</button></div>
+</form>

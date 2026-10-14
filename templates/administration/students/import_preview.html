@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Import des élèves — vérification — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header"><div><h1>Import des élèves : {{ to_review|length }} ligne(s) à vérifier</h1><p>Classe : {{ classe.display_name }}. Rien n'est encore enregistré.</p></div><a class="kis-btn" href="{% url 'import_students' classe.id %}">Annuler</a></div>
+  <div class="kis-alert kis-alert-info" style="margin-bottom:16px">
+    <strong>{{ rows|length }}</strong> ligne(s) lue(s) : {% for status, n in counts.items %}{% if n %}{{ n }} {{ status }}{% if not forloop.last %}, {% endif %}{% endif %}{% endfor %}.
+    Les élèves « déjà connu » seront complétés (cases vides seulement) et les nouveaux créés sans autre question.
+  </div>
+  <form method="post">{% csrf_token %}<input type="hidden" name="token" value="{{ token }}"><input type="hidden" name="confirm" value="1">
+  {% for r in to_review %}
+  <div class="kis-card" style="margin-bottom:12px;border-left:4px solid #E6A100"><div class="kis-card-body">
+    <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+      <div><strong>Ligne {{ r.line }} : {{ r.name }}</strong>{% if r.data.matricule %} · matricule {{ r.data.matricule }}{% endif %}{% if r.data.date_of_birth %} · né(e) le {{ r.data.date_of_birth|date:"d/m/Y" }}{% endif %}{% if r.data.father_phone %} · tél. {{ r.data.father_phone }}{% endif %}
+        <div class="kis-text-muted">{{ r.message }}</div></div>
+      <select class="kis-input" name="choice_{{ r.index }}" style="min-width:320px">
+        {% for value, label, clues in r.candidates %}<option value="{{ value }}" {% if value == r.default_choice %}selected{% endif %}>Même élève que : {{ label }}{% if clues %} ({{ clues|join:", " }}){% endif %}</option>{% endfor %}
+        <option value="new" {% if r.default_choice == "new" %}selected{% endif %}>Autre élève : créer une nouvelle fiche</option>
+        <option value="skip">Ne pas importer cette ligne</option>
+      </select>
+    </div>
+    {% if r.student and r.fills %}<p style="margin:8px 0 0">Cases vides complétées : {% for label, value in r.fills %}<span class="kis-badge kis-badge-success">{{ label }} : {{ value }}</span> {% endfor %}</p>{% endif %}
+    {% if r.student and r.differences %}
+      <table class="kis-table" style="margin-top:8px"><thead><tr><th>Information</th><th>Fiche actuelle</th><th>Fichier Excel</th><th>Remplacer par le fichier</th></tr></thead><tbody>
+      {% for f, label, current, new in r.differences %}<tr><td>{{ label }}</td><td>{{ current }}</td><td>{{ new }}</td><td><input type="checkbox" name="replace_{{ r.index }}" value="{{ f }}"></td></tr>{% endfor %}
+      </tbody></table>
+      <small class="kis-text-muted">Sans case cochée, la fiche actuelle est conservée telle quelle (seules ses cases vides sont complétées).</small>
+    {% endif %}
+  </div></div>
+  {% endfor %}
+  <button class="kis-btn kis-btn-primary" type="submit">Confirmer l'import</button>
+  </form>
+</div>
+{% endblock %}

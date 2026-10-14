@@ -1,0 +1,14 @@
+<header class="kis-navbar">
+  <div class="kis-navbar-left">
+    <div><div class="kis-navbar-title">{{ school.name|default:"KIS Kalanso" }}</div>{% if kis_year_choices|length > 1 %}<form method="post" action="{% url 'set_viewed_year' %}" style="margin:0">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><select name="year" class="kis-year-select" onchange="this.form.submit()" title="Année consultée">{% for y in kis_year_choices %}<option value="{{ y.id }}" {% if kis_viewed_year and y.id == kis_viewed_year.id %}selected{% endif %}>{{ y.name }}{% if y.is_active %} (en cours){% elif y.is_archive %} (reprise){% elif y.is_closed %} (clôturée){% endif %}</option>{% endfor %}</select></form>{% else %}<small class="kis-text-muted">{{ school_year.name|default:"Aucune année active" }}</small>{% endif %}</div>
+  </div>
+  <div class="kis-navbar-right">
+    <div class="kis-dropdown">
+      <button class="kis-dropdown-toggle" type="button"><div class="kis-avatar" style="display:flex;align-items:center;justify-content:center;background:#0F2D5C;color:white;border-radius:50%;width:40px;height:40px">{{ request.user.username|first|upper }}</div><div><strong>{{ request.user.get_full_name|default:request.user.username }}</strong><br><small class="kis-text-muted">{{ kis_role_label }}</small></div><i data-lucide="chevron-down"></i></button>
+      <div class="kis-dropdown-menu">
+        {% if "school.configure" in kis_perms %}<a class="kis-dropdown-item" href="{% url 'school_edit' school.id %}"><i data-lucide="settings"></i>Paramètres</a>{% endif %}
+        <a class="kis-dropdown-item" href="{% url 'logout' %}"><i data-lucide="log-out"></i>Déconnexion</a>
+      </div>
+    </div>
+  </div>
+</header>

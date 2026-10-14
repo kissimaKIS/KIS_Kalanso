@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Licence — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div>
+      <div class="kis-eyebrow">KIS KALANSO</div>
+      <h1>Licence</h1>
+      {% if license_status == "pilot" %}
+        <p>La période pilote est active jusqu'au 30 septembre 2027.</p>
+      {% elif license_status == "commercial" %}
+        <p>La licence commerciale est active sur cet ordinateur.</p>
+      {% else %}
+        <p>L'activation commerciale est gérée automatiquement par le portail KIS.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <section class="kis-card" style="max-width:760px;margin:24px auto">
+    <div class="kis-card-body">
+      {% if license_status == "pilot" %}
+        <div class="kis-alert kis-alert-info">
+          <strong>{{ license_label }}</strong><br>
+          Période : 01/09/2026 — 30/09/2027
+        </div>
+      {% elif license_status == "commercial" and commercial_license %}
+        <div class="kis-alert kis-alert-success">
+          <strong>{{ commercial_license.product_label }}</strong><br>
+          Valide jusqu'au {{ commercial_license.expires|date:"d/m/Y" }}.
+        </div>
+      {% else %}
+        <div class="kis-alert kis-alert-warning" id="license-status-box">
+          <strong>activation automatique</strong><br>
+          {% if edition %}Édition : {{ edition }}<br>{% endif %}
+          {% if school %}Établissement : {{ school.name }}{% endif %}
+          <p style="margin:.5rem 0 0">Après confirmation du paiement sur le portail KIS, la licence sera récupérée automatiquement. Il n'est pas nécessaire de copier une clé.</p>
+        </div>
+        <div class="kis-alert kis-alert-info">
+          <strong>Identifiant machine</strong><br>
+          <code style="font-size:1.15rem;letter-spacing:.08em">{{ machine_id }}</code>
+        </div>
+        {% if activation_result and activation_result.message %}
+          <p id="license-server-message" class="kis-text-muted" style="margin-top:12px">{{ activation_result.message }}</p>
+        {% endif %}
+        <p class="kis-text-muted" style="margin-top:18px">L'activation est lancée automatiquement et l'état est vérifié toutes les 15 secondes. Aucune clé n'est à saisir.</p>
+      {% endif %}
+    </div>
+  </section>
+</div>
+{% if license_status != "pilot" and license_status != "commercial" %}
+<script>
+(function () {
+  const box = document.getElementById('license-status-box');
+  const csrf = '{{ csrf_token }}';
+  if (!box || !csrf) return;
+  async function checkLicense() {
+    try {
+      const r = await fetch('{% url "license_check" %}', {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrf, 'X-Requested-With': 'XMLHttpRequest'}
+      });
+      const data = await r.json();
+      if (data.status === 'success') {
+        box.className = 'kis-alert kis-alert-success';
+        box.innerHTML = '<strong>Licence activée.</strong><br>Redirection…';
+        setTimeout(() => window.location.href = '{% url "startup" %}', 700);
+      } else if (data.message) {
+        box.innerHTML = '<strong>activation automatique</strong><br>' + data.message;
+      }
+    } catch (e) {
+      // Une coupure réseau temporaire ne bloque pas l'écran : le prochain
+      // contrôle reprendra automatiquement.
+    }
+  }
+  checkLicense();
+  setInterval(checkLicense, 15000);
+})();
+</script>
+{% endif %}
+{% endblock %}

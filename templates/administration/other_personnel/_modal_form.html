@@ -1,0 +1,8 @@
+<div class="kis-modal-form" data-modal-form>
+  <form method="post" enctype="multipart/form-data" action="{{ action_url }}" hx-post="{{ action_url }}" hx-target="#kis-modal-body" hx-swap="innerHTML">
+    {% csrf_token %}
+    {% for field in form %}<div class="kis-form-group"><label>{{ field.label }}</label>{{ field }}{{ field.errors }}</div>{% endfor %}
+    {% if form.non_field_errors %}<div class="kis-alert kis-alert-error">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="kis-modal-actions"><button class="kis-btn kis-btn-primary" type="submit">Enregistrer</button><button class="kis-btn" type="button" data-modal-close>Annuler</button></div>
+  </form>
+</div>

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Pointage QR — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header"><div><h1>Pointage par QR code</h1><p>Un téléphone scanne les badges du personnel (entrées et sorties) et les cartes des élèves (présence), même sans connexion, puis se synchronise avec KIS.</p></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="kis-btn" href="{% url 'staff_badges_pdf' %}" target="_blank">Badges du personnel (PDF)</a><a class="kis-btn" href="{% url 'staff_attendance_list' %}?date={{ day|date:'Y-m-d' }}">Pointage du personnel du jour</a></div></div>
+
+  <div class="kis-grid kis-grid-3" style="margin-bottom:16px">
+    <div class="kis-card"><div class="kis-card-body"><span class="kis-text-muted">Passages scannés le {{ day|date:"d/m/Y" }}</span><div style="font-size:1.8rem;font-weight:700">{{ counts.total }}</div></div></div>
+    <div class="kis-card"><div class="kis-card-body"><span class="kis-text-muted">Personnel pointé</span><div style="font-size:1.8rem;font-weight:700">{{ counts.staff }}</div></div></div>
+    <div class="kis-card"><div class="kis-card-body"><span class="kis-text-muted">Élèves présents (scan)</span><div style="font-size:1.8rem;font-weight:700">{{ counts.students }}</div>{% if counts.unknown %}<span class="kis-badge kis-badge-warning">{{ counts.unknown }} badge(s) inconnu(s)</span>{% endif %}</div></div>
+  </div>
+
+  <div class="kis-grid kis-grid-2" style="margin-bottom:16px;align-items:start">
+    <div class="kis-card"><div class="kis-card-header"><strong>1. Préparer le téléphone</strong></div><div class="kis-card-body">
+      <p style="margin-top:0">Installez l'application <strong>KIS Kalanso Notes</strong> sur le téléphone de pointage, ouvrez « Pointage », puis :</p>
+      {% if setup %}
+        <p><strong>Sur le réseau de l'école :</strong> touchez « Configurer par QR code » et scannez ce code. Le téléphone charge la liste des personnes et enverra ensuite ses passages tout seul quand il est sur le Wi-Fi de l'école.</p>
+        {% for s in setup %}<div style="display:flex;gap:14px;align-items:center;margin-bottom:10px"><div style="background:#fff;padding:6px;border:1px solid #E2E8F0;border-radius:8px">{{ s.qr|safe }}</div><span class="kis-text-muted">{{ s.url }}</span></div>{% endfor %}
+        <p class="kis-text-muted">Sans Wi-Fi :</p>
+      {% else %}
+        <p class="kis-text-muted">Astuce : avec le <a href="{% url 'network_settings' %}">réseau local</a> activé, le téléphone se configure en scannant un QR code et se synchronise tout seul sur le Wi-Fi de l'école. Sans réseau :</p>
+      {% endif %}
+      <a class="kis-btn kis-btn-primary" href="{% url 'pointage_package' %}">Télécharger le paquet de pointage</a>
+      <p class="kis-text-muted" style="font-size:13px">Envoyez ce fichier au téléphone (WhatsApp, Bluetooth, câble) et ouvrez-le avec KIS Kalanso Notes. Rechargez-le après de nouvelles inscriptions ou de nouveaux membres du personnel.</p>
+    </div></div>
+
+    <div class="kis-card"><div class="kis-card-header"><strong>2. Charger un relevé du téléphone</strong></div><div class="kis-card-body">
+      <p style="margin-top:0" class="kis-text-muted">Sans réseau local : sur le téléphone, « Envoyer le relevé » produit un fichier <em>pointage_….json</em> (WhatsApp, Bluetooth…). Chargez-le ici. Un même passage envoyé deux fois n'est compté qu'une fois.</p>
+      <form method="post" enctype="multipart/form-data" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">{% csrf_token %}<input type="hidden" name="action" value="upload"><input type="file" name="file" accept=".json,application/json"><button class="kis-btn kis-btn-primary" type="submit">Charger</button></form>
+      <hr style="margin:16px 0;border:0;border-top:1px solid #E2E8F0">
+      <form method="post" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">{% csrf_token %}<input type="hidden" name="action" value="settings">
+        <div class="kis-form-group" style="margin:0"><label>Heure d'arrivée du personnel <span class="kis-text-muted">(facultatif)</span></label><input class="kis-input" type="time" name="staff_start_time" value="{{ config.staff_start_time|time:'H:i' }}"></div>
+        <button class="kis-btn" type="submit">Enregistrer</button>
+      </form>
+      <p class="kis-text-muted" style="font-size:13px">Une entrée scannée après cette heure est comptée comme un retard (en minutes).</p>
+      <form method="post" onsubmit="return confirm('Créer une nouvelle clé ? Les téléphones devront recharger le paquet.');">{% csrf_token %}<input type="hidden" name="action" value="regen"><button class="kis-btn kis-btn-sm kis-btn-danger-soft" type="submit">Nouvelle clé (téléphone perdu)</button></form>
+    </div></div>
+  </div>
+
+  <div class="kis-card"><div class="kis-card-header" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><strong>Passages du {{ day|date:"d/m/Y" }}</strong>
+    <form method="get"><input class="kis-input" type="date" name="date" value="{{ day|date:'Y-m-d' }}" onchange="this.form.submit()"></form></div><div class="kis-card-body">
+    <table class="kis-table"><thead><tr><th>Heure</th><th>Personne</th><th>Type</th><th>Sens</th><th>Résultat</th></tr></thead><tbody>
+    {% for s in scans %}<tr><td>{{ s.scanned_at|time:"H:i" }}</td><td>{{ s.person_label }}</td><td>{{ s.get_person_type_display }}</td><td>{% if s.person_type == "student" %}Présence{% else %}{{ s.get_kind_display }}{% endif %}</td><td class="kis-text-muted">{{ s.result }}</td></tr>
+    {% empty %}<tr><td colspan="5">Aucun passage pour cette date.</td></tr>{% endfor %}
+    </tbody></table>
+    {% if devices %}<p class="kis-text-muted" style="margin-bottom:0">Téléphones : {% for d in devices %}{{ d.device_id|slice:":8" }} (dernier envoi le {{ d.last|date:"d/m/Y H:i" }}, {{ d.n }} passage{{ d.n|pluralize }}){% if not forloop.last %} · {% endif %}{% endfor %}</p>{% endif %}
+  </div></div>
+</div>
+{% endblock %}

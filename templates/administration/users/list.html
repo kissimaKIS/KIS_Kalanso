@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div><h1>Utilisateurs</h1><p>Comptes et rôles de l'application.</p></div>
+    <a class="kis-btn kis-btn-primary" href="{% url 'user_create' %}" data-modal-url="{% url 'user_create' %}" data-modal-title="Nouvel utilisateur">Nouvel utilisateur</a>
+  </div>
+  <div class="kis-card"><div class="kis-card-body">
+    <table class="kis-table">
+      <thead><tr><th>Utilisateur</th><th>Nom</th><th>Email</th><th>Rôles</th><th>Fiche enseignant</th><th>Actif</th><th></th></tr></thead>
+      <tbody>
+      {% for u in users %}
+        <tr>
+          <td>{{ u.username }}</td>
+          <td>{{ u.get_full_name|default:"—" }}</td>
+          <td>{{ u.email|default:"—" }}</td>
+          <td>
+            {% for assignment in u.role_assignments.all %}
+              {{ assignment.get_role_display }}{% if not forloop.last %}, {% endif %}
+            {% empty %}
+              {% if u.is_superuser or u.is_admin %}Administrateur{% elif u.is_prof %}Professeur{% elif u.is_secretary %}Secrétariat{% elif u.is_student %}Élève{% else %}—{% endif %}
+            {% endfor %}
+          </td>
+          <td>{% if u.teacher_profile %}{{ u.teacher_profile.full_name }} ({{ u.teacher_profile.employee_number }}){% else %}—{% endif %}</td>
+          <td>{{ u.is_active|yesno:"Oui,Non" }}</td>
+          <td>
+            {% if u.kis_can_manage %}
+            <a class="kis-btn kis-btn-sm" href="{% url 'user_edit' u.id %}" data-modal-url="{% url 'user_edit' u.id %}" data-modal-title="Modifier l’utilisateur">Modifier</a>
+            {% if u != request.user %}
+              <form method="post" action="{% url 'user_toggle' u.id %}" style="display:inline">
+                {% csrf_token %}<button class="kis-btn kis-btn-sm" type="submit">Activer/Désactiver</button>
+              </form>
+            {% endif %}
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="7">Aucun utilisateur.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div></div>
+</div>
+{% endblock %}

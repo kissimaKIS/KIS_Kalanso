@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}{{ student.first_name }} {{ student.last_name }} — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header" style="margin-bottom:14px">
+    <div>
+      <h1 style="margin:0">{{ student.first_name }} {{ student.last_name }}</h1>
+      <p class="kis-subtitle">Matricule : <strong>{{ student.matricule|default:"—" }}</strong>{% if current_enrollment %} · {{ current_enrollment.classe.display_name }} · {{ current_enrollment.school_year.name }}{% endif %}{% if student.recruitment_year %} · recruté(e) en {{ student.recruitment_year }}-{{ student.recruitment_year|add:1 }}{% endif %}</p>
+    </div>
+  </div>
+
+  <div class="kis-actionbar">
+    {% if "students.manage" in kis_perms %}
+    <div class="kis-actiongroup"><span class="kis-actiongroup-label">Fiche</span>
+      <a class="kis-btn kis-btn-sm kis-btn-primary" href="{% url 'student_edit' student.id %}">Modifier les informations</a>
+      {% if current_enrollment %}<a class="kis-btn kis-btn-sm" href="{% url 'discipline_create' current_enrollment.id %}">Ajouter discipline</a>{% endif %}
+    </div>
+    {% if current_enrollment %}
+    <div class="kis-actiongroup"><span class="kis-actiongroup-label">Documents</span>
+      <a class="kis-btn kis-btn-sm" href="{% url 'carte_identite_pdf' current_enrollment.id %}" target="_blank">Carte d'identité</a>
+      <a class="kis-btn kis-btn-sm" href="{% url 'certificat_frequentation_pdf' current_enrollment.id %}" target="_blank">Certificat de fréquentation</a>
+      <a class="kis-btn kis-btn-sm" href="{% url 'fiche_inscription_pdf' current_enrollment.id %}" target="_blank">Fiche d'inscription</a>
+      {% if has_fundamental %}<a class="kis-btn kis-btn-sm" href="{% url 'fiche_scolaire_pdf' student.id %}" target="_blank">Fiche scolaire</a>{% endif %}
+    </div>
+    {% endif %}
+    {% endif %}
+    {% if pay_enrollment and "finance.collect" in kis_perms %}
+    <div class="kis-actiongroup"><span class="kis-actiongroup-label">Finance</span>
+      <a class="kis-btn kis-btn-sm kis-btn-primary" href="{% url 'grouped_payment' pay_enrollment.id %}">Encaisser{% if total_due %} ({{ total_due|floatformat:"0g" }} dû){% endif %}</a>
+      <a class="kis-btn kis-btn-sm" href="{% url 'family_statement_pdf' pay_enrollment.id %}" target="_blank">Facture famille</a>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="kis-grid kis-grid-2" style="margin-bottom:16px;align-items:stretch">
+    <div class="kis-card"><div class="kis-card-header"><strong>Identité</strong></div><div class="kis-card-body" style="display:flex;gap:18px;align-items:flex-start">
+      {% if student.photo %}<img src="{{ student.photo.url }}" alt="" style="width:110px;height:110px;object-fit:cover;border-radius:10px">{% endif %}
+      <table class="kis-table" style="margin:0"><tbody>
+        <tr><th style="width:45%">Sexe</th><td>{{ student.get_sex_display|default:"Non renseigné" }}</td></tr>
+        <tr><th>Date de naissance</th><td>{{ student.date_of_birth|date:"d/m/Y"|default:"—" }}</td></tr>
+        <tr><th>Lieu de naissance</th><td>{{ student.place_of_birth|default:"—" }}</td></tr>
+        <tr><th>Année de recrutement</th><td>{% if student.recruitment_year %}{{ student.recruitment_year }}-{{ student.recruitment_year|add:1 }}{% else %}—{% endif %}</td></tr>
+        <tr><th>Matricule</th><td>{{ student.matricule|default:"—" }}</td></tr>
+      </tbody></table>
+    </div></div>
+    <div class="kis-card"><div class="kis-card-header"><strong>Parents et personne de contact</strong></div><div class="kis-card-body">
+      <table class="kis-table" style="margin:0"><tbody>
+        <tr><th style="width:38%">Père</th><td>{{ student.father_name|default:"—" }}{% if student.father_phone %} · {{ student.father_phone }}{% endif %}</td></tr>
+        <tr><th>Mère</th><td>{{ student.mother_name|default:"—" }}{% if student.mother_phone %} · {{ student.mother_phone }}{% endif %}</td></tr>
+        <tr><th>WhatsApp</th><td>{{ student.whatsapp_phone|default:"—" }}</td></tr>
+        <tr><th>Personne de contact</th><td>{% if student.contact_name %}{{ student.contact_name }}{% if student.contact_relation %} ({{ student.contact_relation }}){% endif %}{% if student.contact_phone %} · {{ student.contact_phone }}{% endif %}{% else %}<span class="kis-text-muted">Non renseignée : le père est contacté.</span>{% endif %}</td></tr>
+      </tbody></table>
+    </div></div>
+  </div>
+
+  <div class="kis-card" style="margin-bottom:16px">
+    <div class="kis-card-header"><strong>Historique scolaire et documents</strong></div>
+    <div class="kis-card-body">
+      <table class="kis-table"><thead><tr><th>Année</th><th>Classe</th><th>Type</th><th>Documents</th>{% if "data.correct" in kis_perms %}<th></th>{% endif %}</tr></thead><tbody>
+      {% for e in enrollments %}<tr>
+        <td><strong>{{ e.school_year.name }}</strong>{% if e.school_year.is_archive %} <span class="kis-badge">Reprise</span>{% elif e.school_year.is_closed %} <span class="kis-badge">Clôturée</span>{% elif e.school_year.is_active %} <span class="kis-badge kis-badge-success">Active</span>{% endif %}</td>
+        <td>{{ e.classe.display_name }}</td>
+        <td>{{ e.get_student_type_display }}</td>
+        <td><div class="kis-cell-actions" style="justify-content:flex-start">
+          {% if e.school_year.is_archive %}<span class="kis-text-muted">Année antérieure reprise : soldes uniquement</span>{% else %}
+          {% if "students.manage" in kis_perms %}<a class="kis-btn kis-btn-sm" href="{% url 'fiche_inscription_pdf' e.id %}" target="_blank">Fiche d'inscription</a><a class="kis-btn kis-btn-sm" href="{% url 'certificat_frequentation_pdf' e.id %}" target="_blank">Certificat</a>{% if e.is_fundamental %}<a class="kis-btn kis-btn-sm" href="{% url 'releve_notes_pdf' e.id %}" target="_blank">Relevé de notes</a><a class="kis-btn kis-btn-sm" href="{% url 'certificat_transfert_pdf' e.id %}" target="_blank">Certificat de transfert</a>{% endif %}{% endif %}
+          {% if "bulletins.print" in kis_perms %}{% for t in e.terms %}<a class="kis-btn kis-btn-sm" href="{% url 'bulletin_pdf' e.id t.id %}" target="_blank">Bulletin {{ t.name }}</a>{% endfor %}{% endif %}
+          {% endif %}
+        </div></td>
+        {% if "data.correct" in kis_perms %}<td><div class="kis-cell-actions">{% if not e.school_year.is_closed %}<a class="kis-btn kis-btn-sm" href="{% url 'correction' 'changer-classe' e.id %}">Changer de classe</a><a class="kis-btn kis-btn-sm kis-btn-danger-soft" href="{% url 'correction' 'supprimer-inscription' e.id %}">Supprimer</a>{% endif %}</div></td>{% endif %}
+      </tr>{% empty %}<tr><td colspan="5">Aucune inscription.</td></tr>{% endfor %}
+      </tbody></table>
+    </div>
+  </div>
+
+  <div class="kis-card" style="margin-bottom:16px">
+    <div class="kis-card-header" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><strong>Pièces du dossier</strong>
+      {% if "students.manage" in kis_perms or "communication.manage" in kis_perms %}<a class="kis-btn kis-btn-sm" href="{% url 'document_create' %}?student={{ student.id }}&next={{ request.path|urlencode }}">Ajouter une pièce</a>{% endif %}
+    </div>
+    <div class="kis-card-body">
+      {% if documents %}<table class="kis-table"><thead><tr><th>Document</th><th>Classe</th><th>Ajouté le</th><th></th></tr></thead><tbody>
+      {% for d in documents %}<tr><td>{{ d.title }}</td><td>{{ d.classe.display_name|default:"—" }}</td><td>{{ d.uploaded_at|date:"d/m/Y" }}</td>
+        <td><div class="kis-cell-actions"><a class="kis-btn kis-btn-sm" href="{{ d.file.url }}" target="_blank">Ouvrir</a>{% if "students.manage" in kis_perms or "communication.manage" in kis_perms %}<a class="kis-btn kis-btn-sm kis-btn-danger-soft" href="{% url 'document_delete' d.id %}?next={{ request.path|urlencode }}">Supprimer</a>{% endif %}</div></td></tr>{% endfor %}
+      </tbody></table>{% else %}<p class="kis-text-muted" style="margin:0">Aucune pièce (acte de naissance, certificat de vaccination…).</p>{% endif %}
+    </div>
+  </div>
+
+  <div class="kis-card" style="margin-bottom:16px">
+    <div class="kis-card-header" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><strong>Situation financière</strong>
+      <div class="kis-cell-actions">
+        {% if current_enrollment %}<a class="kis-btn kis-btn-sm" href="{% url 'invoice_statement_pdf' current_enrollment.id %}" target="_blank">Situation PDF</a>{% if whatsapp_balance_url %}<a class="kis-btn kis-btn-sm kis-btn-whatsapp" data-wa data-wa-pdf="{% url 'invoice_statement_pdf' current_enrollment.id %}" data-wa-pdf-name="situation_{{ student.last_name }}.pdf" href="{{ whatsapp_balance_url }}" target="_blank" rel="noopener" title="Rappel de paiement au parent ; la situation PDF est téléchargée pour la joindre">Rappel WhatsApp</a>{% endif %}
+        {% if "finance.manage" in kis_perms %}<a class="kis-btn kis-btn-sm" href="{% url 'financial_adjustment' current_enrollment.id %}">Ajuster la situation</a><a class="kis-btn kis-btn-sm" href="{% url 'invoice_create' current_enrollment.id %}">Créer une facture</a>{% endif %}{% endif %}
+        {% if "finance.manage" in kis_perms %}<a class="kis-btn kis-btn-sm" href="{% url 'prior_balance_add' student.id %}">Reliquat antérieur</a>{% endif %}
+      </div>
+    </div>
+    <div class="kis-card-body">
+      <table class="kis-table"><thead><tr><th>Année</th><th>Frais</th><th>Total</th><th>Payé</th><th>Reste</th><th>Statut</th><th></th></tr></thead><tbody>
+      {% for invoice in invoices %}<tr>
+        <td>{{ invoice.enrollment.school_year.name }}</td><td>{{ invoice.label }}</td>
+        <td>{{ invoice.total_amount|floatformat:"0g" }}</td><td>{{ invoice.paid_amount|floatformat:"0g" }}</td><td><strong>{{ invoice.reste|floatformat:"0g" }}</strong></td>
+        <td>{{ invoice.status_label }}</td>
+        <td><div class="kis-cell-actions">{% if not invoice.is_paid and "finance.collect" in kis_perms %}<a class="kis-btn kis-btn-sm" href="{% url 'payment_create' invoice.id %}">Payer</a>{% endif %}{% if "data.correct" in kis_perms %}{% if not invoice.enrollment.school_year.is_closed or invoice.enrollment.school_year.is_archive %}<a class="kis-btn kis-btn-sm kis-btn-danger-soft" href="{% url 'correction' 'supprimer-facture' invoice.id %}" title="Facture créée par erreur">Supprimer</a>{% endif %}{% endif %}</div></td>
+      </tr>
+      {% for line in invoice.detail_lines %}<tr class="kis-subline">
+        <td></td><td style="padding-left:24px" class="kis-text-muted">↳ {{ line.name }}</td>
+        <td class="kis-text-muted">{{ line.amount|floatformat:"0g" }}</td><td class="kis-text-muted">{{ line.paid_amount|floatformat:"0g" }}</td><td class="kis-text-muted">{{ line.reste|floatformat:"0g" }}</td>
+        <td class="kis-text-muted">{% if line.reste %}{% if line.paid_amount %}Partiel{% else %}Impayé{% endif %}{% else %}Soldé{% endif %}</td><td></td>
+      </tr>{% endfor %}
+      {% if invoice.to_ventilate %}<tr class="kis-subline"><td></td><td colspan="5" style="padding-left:24px"><span class="kis-badge kis-badge-warning">À ventiler : {{ invoice.to_ventilate|floatformat:"0g" }}</span> <span class="kis-text-muted">versé avant le détail en postes</span></td><td>{% if "finance.collect" in kis_perms %}<a class="kis-btn kis-btn-sm kis-btn-primary" href="{% url 'invoice_ventilation' invoice.id %}">Ventiler</a>{% endif %}</td></tr>{% endif %}
+      {% empty %}<tr><td colspan="7">Aucune facture.</td></tr>{% endfor %}
+      </tbody></table>
+      {% if payments %}
+      <h3 style="margin:18px 0 8px">Paiements enregistrés</h3>
+      <table class="kis-table"><thead><tr><th>Date</th><th>N° reçu</th><th>Frais</th><th>Montant</th><th></th></tr></thead><tbody>
+      {% for p in payments %}<tr>
+        <td>{{ p.date|date:"d/m/Y" }}</td><td>{% if p.is_carryover %}<span class="kis-badge">Reprise</span>{% else %}{{ p.receipt_number }}{% endif %}</td>
+        <td>{{ p.invoice.fee_type.name }} <span class="kis-text-muted">({{ p.invoice.enrollment.school_year.name }})</span></td>
+        <td>{{ p.amount|floatformat:"0g" }}</td>
+        <td><div class="kis-cell-actions">{% if p.has_receipt %}<a class="kis-btn kis-btn-sm" href="{% url 'receipt_pdf' p.id %}" target="_blank">Reçu</a>{% endif %}{% if "data.correct" in kis_perms %}{% if not p.invoice.enrollment.school_year.is_closed or p.invoice.enrollment.school_year.is_archive %}<a class="kis-btn kis-btn-sm kis-btn-danger-soft" href="{% url 'correction' 'annuler-paiement' p.id %}">Annuler</a>{% endif %}{% endif %}</div></td>
+      </tr>{% endfor %}
+      </tbody></table>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if "data.correct" in kis_perms %}
+  <div class="kis-actiongroup kis-actiongroup-danger" style="display:inline-flex"><span class="kis-actiongroup-label">Corrections (direction)</span>
+    <a class="kis-btn kis-btn-sm" href="{% url 'student_merge_pick' student.id %}">Fusionner avec une autre fiche</a>
+    <a class="kis-btn kis-btn-sm kis-btn-danger-soft" href="{% url 'correction' 'supprimer-eleve' student.id %}">Supprimer l'élève</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

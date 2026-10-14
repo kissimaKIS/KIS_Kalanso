@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Reliquat antérieur — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header"><div><h1>Ajouter un reliquat antérieur</h1><p>{{ student }} — montant encore dû sur une année d'avant KIS Kalanso.</p></div></div>
+  <div class="kis-card"><div class="kis-card-body">
+    {% if error %}<div class="kis-alert kis-alert-danger">{{ error }}</div>{% endif %}
+    <form method="post">{% csrf_token %}
+      <div class="kis-grid kis-grid-2">
+        <div class="kis-form-group"><label for="start_year">Année scolaire</label><select id="start_year" name="start_year" class="kis-input" required><option value="">— Choisir —</option>{% for value, label in years %}<option value="{{ value }}" {% if post.start_year == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+        <div class="kis-form-group"><label for="amount">Reste à payer ({{ school.currency }})</label><input id="amount" name="amount" class="kis-input" inputmode="numeric" required value="{{ post.amount|default:'' }}"></div>
+      </div>
+      <div class="kis-form-group"><label for="label">Libellé <span class="kis-text-muted">(facultatif)</span></label><input id="label" name="label" class="kis-input" maxlength="100" placeholder="Reliquat de scolarité AAAA-AAAA" value="{{ post.label|default:'' }}"></div>
+      <button class="kis-btn kis-btn-primary" type="submit">Ajouter le reliquat</button>
+    </form>
+  </div></div>
+</div>
+{% endblock %}

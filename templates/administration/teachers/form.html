@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header"><div><h1>{{ title }}</h1><p>Fiche enseignant</p></div></div>
+  <form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    {% if form.errors %}
+    <div class="kis-alert kis-alert-error" role="alert">
+      <strong>Impossible d'enregistrer l'enseignant.</strong>
+      Vérifiez les champs signalés ci-dessous.
+      {% if form.non_field_errors %}{{ form.non_field_errors }}{% endif %}
+    </div>
+    {% endif %}
+    <div class="kis-card"><div class="kis-card-body"><h2>Identité</h2><div class="kis-grid kis-grid-2">
+      {% for field in form %}{% if field.name == 'employee_number' or field.name == 'first_name' or field.name == 'last_name' or field.name == 'phone' or field.name == 'email' or field.name == 'address' or field.name == 'date_of_birth' or field.name == 'photo' or field.name == 'hire_date' or field.name == 'is_active' %}<div class="kis-form-group"><label>{{ field.label }}</label>{{ field }}{{ field.errors }}</div>{% endif %}{% endfor %}
+    </div></div></div>
+    <div class="kis-card"><div class="kis-card-body"><h2>Statut et profil pédagogique</h2><div class="kis-grid kis-grid-2">
+      {% for field in form %}{% if field.name == 'contract_type' or field.name == 'pedagogical_profile' or field.name == 'specialty' or field.name == 'qualification' %}<div class="kis-form-group"><label>{{ field.label }}</label>{{ field }}{{ field.errors }}</div>{% endif %}{% endfor %}
+    </div></div></div>
+    <div class="kis-card"><div class="kis-card-body"><h2>Charge et rémunération</h2><div class="kis-grid kis-grid-2">
+      {% for field in form %}{% if field.name == 'monthly_salary' or field.name == 'weekly_obligation' or field.name == 'complementary_hours_allowed' or field.name == 'hourly_rate' or field.name == 'hours_cap' or field.name == 'contract_start_date' or field.name == 'contract_end_date' %}<div class="kis-form-group"><label>{{ field.label }}</label>{{ field }}{{ field.errors }}</div>{% endif %}{% endfor %}
+    </div><p class="kis-help">Les paramètres de service et de rémunération servent de base aux futurs calculs de présence, retenues et vacations.</p></div></div>
+    <button type="submit" class="kis-btn kis-btn-primary">Enregistrer</button> <a class="kis-btn" href="{% url 'teacher_list' %}">Annuler</a>
+  </form>
+</div>
+{% endblock %}

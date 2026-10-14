@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="kis-page bulletin-config-page">
+  <div class="kis-page-header bulletin-config-header">
+    <div>
+      <h1>Paramétrer le bulletin</h1>
+      <p>{{ classe.display_name }} — les éléments configurés serviront aussi aux onglets de saisie des notes.</p>
+    </div>
+    <div class="bulletin-config-actions">
+      
+      <a class="kis-btn kis-btn-primary" href="{% url 'class_results' classe.id classe.school_year.terms.first.id %}">Notes du bulletin</a>
+    </div>
+  </div>
+  {% if locked_terms %}
+  <div class="kis-alert kis-alert-danger" style="margin-bottom:16px">🔒 Bulletins verrouillés pour {% for t in locked_terms %}{{ t.name }}{% if not forloop.last %}, {% endif %}{% endfor %} : le paramétrage ne peut plus être modifié, car il changerait leurs moyennes.</div>
+  {% endif %}
+
+  <div class="kis-card bulletin-config-card">
+    <div class="kis-card-body">
+      <h2>Éléments du bulletin</h2>
+      <p class="bulletin-config-help">Choisissez les matières existantes à afficher, puis ajoutez si nécessaire les éléments propres au bulletin. Aucun calcul de regroupement n'est imposé par KIS.</p>
+      {% if items %}
+      <div style="overflow-x:auto">
+        <table class="kis-table bulletin-config-table">
+          <thead><tr><th>#</th><th>Élément</th><th>Coefficient</th><th>Barème</th><th style="text-align:right">Actions</th></tr></thead>
+          <tbody>
+          {% for item in items %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td><strong>{{ item.display_name }}</strong>{% if item.is_custom %}<div class="bulletin-config-meta">Élément personnalisé</div>{% endif %}</td>
+            <td>{{ item.coefficient }}</td><td>{{ item.max_score }}</td>
+            <td style="text-align:right;white-space:nowrap">
+              <form method="post" style="display:inline">{% csrf_token %}<input type="hidden" name="item_id" value="{{ item.id }}"><button name="action" value="up" class="kis-btn kis-btn-sm" {% if forloop.first %}disabled{% endif %}>↑</button></form>
+              <form method="post" style="display:inline">{% csrf_token %}<input type="hidden" name="item_id" value="{{ item.id }}"><button name="action" value="down" class="kis-btn kis-btn-sm" {% if forloop.last %}disabled{% endif %}>↓</button></form>
+              <form method="post" style="display:inline" onsubmit="return confirm('Retirer cet élément du bulletin ?')">{% csrf_token %}<input type="hidden" name="item_id" value="{{ item.id }}"><button name="action" value="delete" class="kis-btn kis-btn-sm">Retirer</button></form>
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}<p>Aucun élément n'est encore configuré. Sans paramétrage, KIS conserve le fonctionnement historique.</p>{% endif %}
+    </div>
+  </div>
+
+  <div class="bulletin-config-grid">
+    <div class="kis-card">
+      <div class="kis-card-body">
+        <h2>Ajouter des matières existantes</h2>
+        {% if available_links %}
+        <form method="post" id="add-subject-form">{% csrf_token %}<input type="hidden" name="action" value="add_subject">
+          <div class="kis-check-dropdown" id="subject-picker">
+            <button type="button" class="kis-check-dropdown-toggle" aria-expanded="false" aria-controls="subject-options">
+              <span id="subject-picker-label">Choisir une ou plusieurs matières…</span><span aria-hidden="true">⌄</span>
+            </button>
+            <div class="kis-check-dropdown-menu" id="subject-options">
+              {% for link in available_links %}
+              <label class="kis-check-option">
+                <input type="checkbox" name="subject_ids" value="{{ link.subject_id }}">
+                <span><strong>{{ link.name }}</strong><small>Coefficient {{ link.coefficient }}</small></span>
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+          <button class="kis-btn kis-btn-primary" style="margin-top:14px" type="submit">Ajouter les matières sélectionnées</button>
+        </form>
+        {% else %}<p style="margin-bottom:0">Toutes les matières actives sont déjà ajoutées.</p>{% endif %}
+      </div>
+    </div>
+
+    <div class="kis-card">
+      <div class="kis-card-body">
+        <h2>Ajouter un élément personnalisé</h2>
+        <form method="post">{% csrf_token %}<input type="hidden" name="action" value="add_custom">
+          <label>Libellé</label><input class="kis-input" style="width:100%;margin-bottom:10px" name="label" placeholder="Ex. Dictée et questions, Conduite" required>
+          <div style="display:flex;gap:10px"><div style="flex:1"><label>Coefficient</label><input class="kis-input" style="width:100%" type="number" step="0.01" min="0.01" name="coefficient" value="1" required></div>
+          <div style="flex:1"><label>Barème</label><input class="kis-input" style="width:100%" type="number" step="0.01" min="0.01" name="max_score" value="{{ default_max_score }}" required></div></div>
+          <button class="kis-btn kis-btn-primary" style="margin-top:14px" type="submit">Ajouter au bulletin</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="bulletin-config-footer-actions">
+    
+    <a class="kis-btn kis-btn-primary" href="{% url 'class_results' classe.id classe.school_year.terms.first.id %}">Notes du bulletin →</a>
+  </div>
+</div>
+
+<style>
+.bulletin-config-page{font-size:1rem}
+.bulletin-config-page h1{font-size:2rem}
+.bulletin-config-page h2{font-size:1.35rem}
+.bulletin-config-header{align-items:flex-start}
+.bulletin-config-actions,.bulletin-config-footer-actions{display:flex;gap:10px;flex-wrap:wrap}
+.bulletin-config-card{margin-bottom:18px}
+.bulletin-config-help{font-size:1rem;line-height:1.55}
+.bulletin-config-meta{font-size:.9rem;color:#666;margin-top:3px}
+.bulletin-config-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:18px}
+.bulletin-config-table th,.bulletin-config-table td{font-size:1rem;padding:12px 10px}
+.bulletin-config-footer-actions{margin-top:2px;padding-bottom:10px}
+.kis-check-dropdown{position:relative}
+.kis-check-dropdown-toggle{width:100%;min-height:48px;padding:11px 14px;border:1px solid #cfd5dc;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:space-between;text-align:left;font-size:1rem;cursor:pointer}
+.kis-check-dropdown-menu{display:none;position:absolute;z-index:20;left:0;right:0;top:calc(100% + 5px);max-height:280px;overflow:auto;background:#fff;border:1px solid #cfd5dc;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:6px}
+.kis-check-dropdown.open .kis-check-dropdown-menu{display:block}
+.kis-check-option{display:flex;align-items:center;gap:11px;padding:11px 10px;border-radius:6px;cursor:pointer;font-size:1rem}
+.kis-check-option:hover{background:#f5f7f9}
+.kis-check-option input{width:18px;height:18px;flex:0 0 auto}
+.kis-check-option span{display:flex;flex-direction:column;gap:2px}
+.kis-check-option small{font-size:.88rem;color:#666}
+@media(max-width:700px){.bulletin-config-header{flex-direction:column}.bulletin-config-actions{width:100%}.bulletin-config-actions .kis-btn{flex:1;text-align:center}}
+</style>
+<script>
+(function(){
+  const picker=document.getElementById('subject-picker');
+  if(!picker) return;
+  const toggle=picker.querySelector('.kis-check-dropdown-toggle');
+  const label=document.getElementById('subject-picker-label');
+  const checks=[...picker.querySelectorAll('input[type=checkbox]')];
+  function refresh(){
+    const selected=checks.filter(c=>c.checked);
+    label.textContent=selected.length ? selected.length+' matière'+(selected.length>1?'s':'')+' sélectionnée'+(selected.length>1?'s':'') : 'Choisir une ou plusieurs matières…';
+  }
+  toggle.addEventListener('click',()=>{const open=picker.classList.toggle('open');toggle.setAttribute('aria-expanded',open?'true':'false')});
+  checks.forEach(c=>c.addEventListener('change',refresh));
+  document.addEventListener('click',e=>{if(!picker.contains(e.target)){picker.classList.remove('open');toggle.setAttribute('aria-expanded','false')}});
+})();
+</script>
+{% endblock %}

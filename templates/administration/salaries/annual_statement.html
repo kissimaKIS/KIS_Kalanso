@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div>
+      <h1>État annuel des salaires — personnel permanent</h1>
+      <p>Une grille pour l'année scolaire entière, au lieu de saisir chaque mois séparément. Une case déjà payée est verrouillée ; laissez les autres vides si rien à payer pour ce mois.</p>
+    </div>
+    <div>
+      <a class="kis-btn" href="{% url 'teacher_payment_list' %}">Salaires enseignants</a>
+      <a class="kis-btn" href="{% url 'other_personnel_payment_list' %}">Salaires autre personnel</a>
+      <a class="kis-btn" href="{% url 'hourly_monthly_statement' %}">État mensuel (horaires)</a>
+    </div>
+  </div>
+
+  {% if not school_year %}
+    <div class="kis-alert kis-alert-error">Aucune année scolaire active.</div>
+  {% elif not periods %}
+    <div class="kis-alert kis-alert-error">Les dates de l'année scolaire active ne sont pas définies.</div>
+  {% else %}
+  <form method="post">
+    {% csrf_token %}
+    <div class="kis-card" style="overflow-x:auto">
+      <div class="kis-card-body">
+        <table class="kis-table">
+          <thead>
+            <tr>
+              <th style="position:sticky;left:0;background:var(--kis-bg,#fff)">Personnel</th>
+              {% for period in periods %}<th>{{ period.label }}</th>{% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in teacher_rows %}
+            <tr>
+              <td style="position:sticky;left:0;background:var(--kis-bg,#fff)"><strong>{{ row.label }}</strong><br><small>Enseignant</small></td>
+              {% for cell in row.cells %}
+              <td>
+                {% if cell.existing %}
+                  <span title="Déjà payé le {{ cell.existing.paid_at|date:'d/m/Y' }}">{{ cell.existing.amount|floatformat:0 }}</span>
+                {% else %}
+                  <input type="number" step="0.01" min="0" style="width:110px" name="amount_teacher_{{ row.person.id }}_{{ cell.period.index }}" value="{{ cell.default|default_if_none:'' }}">
+                {% endif %}
+              </td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+            {% for row in other_rows %}
+            <tr>
+              <td style="position:sticky;left:0;background:var(--kis-bg,#fff)"><strong>{{ row.label }}</strong><br><small>{{ row.person.function }}</small></td>
+              {% for cell in row.cells %}
+              <td>
+                {% if cell.existing %}
+                  <span title="Déjà payé le {{ cell.existing.paid_at|date:'d/m/Y' }}">{{ cell.existing.amount|floatformat:0 }}</span>
+                {% else %}
+                  <input type="number" step="0.01" min="0" style="width:110px" name="amount_other_{{ row.person.id }}_{{ cell.period.index }}" value="{{ cell.default|default_if_none:'' }}">
+                {% endif %}
+              </td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+            {% if not teacher_rows and not other_rows %}
+              <tr><td colspan="{{ periods|length|add:1 }}">Aucun personnel permanent actif.</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+        <button class="kis-btn kis-btn-primary" style="margin-top:16px" type="submit">Enregistrer les salaires renseignés</button>
+      </div>
+    </div>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div><h1>Autre personnel</h1><p>Personnel non enseignant</p></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><a class="kis-btn kis-btn-primary" href="{% url 'other_personnel_create' %}" data-modal-url="{% url 'other_personnel_create' %}" data-modal-title="Nouveau membre du personnel">Nouveau personnel</a><a class="kis-btn" href="{% url 'import_other_personnel' %}">Importer Excel</a><a class="kis-btn" href="{% url 'other_personnel_pdf' %}" target="_blank">PDF</a><a class="kis-btn" href="{% url 'staff_badges_pdf' %}?type=staff" target="_blank" title="Badges à QR code pour le pointage (8 par feuille)">Badges</a><a class="kis-btn" href="{% url 'other_personnel_payment_list' %}">Salaires</a></div>
+  </div>
+  <div class="kis-card"><div class="kis-card-body">
+    <form method="get" class="kis-grid kis-grid-3">
+      <div class="kis-form-group"><label>Recherche</label><input name="q" value="{{ search }}" placeholder="Nom, matricule ou fonction"></div>
+      <div class="kis-form-group"><label>Statut</label><select name="statut"><option value="">Tous</option>{% for value,label in contract_types %}<option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+      <div><button class="kis-btn" type="submit">Filtrer</button></div>
+    </form>
+  </div></div>
+  <div class="kis-card"><div class="kis-card-body"><table class="kis-table"><thead><tr><th>Matricule</th><th>Nom et prénom(s)</th><th>Fonction</th><th>Statut</th><th>Téléphone</th><th>État</th><th></th></tr></thead><tbody>
+  {% for p in personnel %}<tr><td>{{ p.employee_number }}</td><td>{{ p.last_name }} {{ p.first_name }}</td><td>{{ p.function }}</td><td>{{ p.get_contract_type_display }}</td><td>{{ p.phone|default:"—" }}</td><td>{{ p.is_active|yesno:"Actif,Inactif" }}</td><td><a class="kis-btn kis-btn-sm" href="{% url 'other_personnel_edit' p.id %}" data-modal-url="{% url 'other_personnel_edit' p.id %}" data-modal-title="Modifier le personnel">Modifier</a></td></tr>{% empty %}<tr><td colspan="7">Aucun membre du personnel enregistré.</td></tr>{% endfor %}
+  </tbody></table></div></div>
+</div>
+{% endblock %}

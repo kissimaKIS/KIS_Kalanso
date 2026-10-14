@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Nouvel encaissement — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header"><div><h1>Nouvel encaissement</h1><p>{{ school_year.name }} — choisissez l'élève. Vous pourrez ensuite régler plusieurs frais, et ceux de ses frères et sœurs, sur un seul reçu.</p></div></div>
+  <div class="kis-card"><div class="kis-card-body">
+    <form method="get" class="kis-form-row" style="margin-bottom:14px">
+      {% if request.GET.year %}<input type="hidden" name="year" value="{{ request.GET.year }}">{% endif %}
+      <input class="kis-input" type="search" name="q" value="{{ search }}" placeholder="Élève, matricule, nom ou téléphone d'un parent" style="flex:1" autofocus>
+      <button class="kis-btn" type="submit">Rechercher</button>
+      {% if search %}<a class="kis-btn" href="{% url 'payment_start' %}">Effacer</a>{% endif %}
+    </form>
+    <table class="kis-table">
+      <thead><tr><th>Élève</th><th>Classe</th><th>Responsable</th><th>Factures ouvertes</th><th>Reste à payer</th><th></th></tr></thead>
+      <tbody>
+      {% for e in rows %}
+        <tr>
+          <td><strong>{{ e.student }}</strong>{% if e.student.matricule %}<div class="kis-text-muted" style="font-size:12px">{{ e.student.matricule }}</div>{% endif %}</td>
+          <td>{{ e.classe.display_name }}{% if all_years %}<div class="kis-text-muted" style="font-size:12px">{{ e.school_year.name }}</div>{% endif %}</td>
+          <td style="font-size:13px">{{ e.student.responsible_label|default:"—" }}</td>
+          <td>{{ e.open_count }}</td>
+          <td><strong>{{ e.due|floatformat:"0" }} {{ e.school_year.school.currency }}</strong></td>
+          <td><a class="kis-btn kis-btn-sm kis-btn-primary" href="{% url 'grouped_payment' e.id %}">Encaisser</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6">{% if search %}Aucun élève avec un reste à payer ne correspond à « {{ search }} ».{% else %}Aucun reste à payer pour cette année.{% endif %}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% if truncated %}<p class="kis-text-muted">Seuls les 100 premiers élèves sont affichés : précisez la recherche.</p>{% endif %}
+  </div></div>
+</div>
+{% endblock %}

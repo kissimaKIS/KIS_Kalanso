@@ -1,0 +1,7 @@
+<form method="post" action="{{ action_url }}" data-modal-form data-modal-reload="true">
+  {% csrf_token %}
+  <p class="kis-text-muted">Année scolaire active : <strong>{{ school_year.name }}</strong></p>{% if errors %}<div class="kis-form-errors">{% for error in errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
+  <div class="kis-form-group"><label class="kis-label" for="id_term_name">Nom de la période</label><input id="id_term_name" class="kis-input" name="name" value="{{ name }}" placeholder="Période 1" required maxlength="50"></div>
+  <div class="kis-form-group"><label class="kis-label" for="id_term_order">Ordre</label><input id="id_term_order" class="kis-input" type="number" name="order" value="{{ order|default:1 }}" min="1" required></div>
+  <div class="kis-modal-actions"><button type="button" class="kis-btn" data-modal-close>Annuler</button><button class="kis-btn kis-btn-primary" type="submit">Créer la période</button></div>
+</form>

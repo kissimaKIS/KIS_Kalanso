@@ -1,0 +1,7 @@
+<form method="post" action="{{ action_url }}" class="kis-modal-form" data-modal-form data-modal-reload="true">
+    {% csrf_token %}
+    <p>Copier les matières d'un niveau préscolaire vers <strong>{{ target_level.name }}</strong>.</p>
+    <div class="kis-form-group"><label>{{ form.source_level.label }}</label>{{ form.source_level }}{{ form.source_level.errors }}</div>
+    {% if form.non_field_errors %}<div class="kis-alert kis-alert-error">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="kis-modal-actions"><button class="kis-btn" type="button" data-modal-close>Annuler</button><button class="kis-btn kis-btn-primary" type="submit">Copier les matières</button></div>
+</form>

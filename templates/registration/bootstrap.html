@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Première installation — KIS Kalanso{% endblock %}
+
+{% block public_content %}
+<section class="kis-installation">
+    <div class="kis-installation-shell">
+
+        <header class="kis-installation-header">
+            <div class="kis-installation-brand">
+                <div class="kis-installation-logo">
+                    {% load static %}
+                    <img src="{% static 'images/logo.png' %}" alt="KIS Kalanso">
+                </div>
+                <div>
+                    <div class="kis-eyebrow">KIS KALANSO</div>
+                    <h1>Première installation</h1>
+                    <p>Créons le compte administrateur principal de votre établissement.</p>
+                </div>
+            </div>
+
+            <div class="kis-installation-step">
+                <span>ÉTAPE 1</span>
+                <strong>Compte administrateur</strong>
+            </div>
+        </header>
+
+        {% if error %}
+            <div class="kis-alert kis-alert-danger" role="alert">
+                {{ error }}
+            </div>
+        {% endif %}
+
+        <div class="kis-installation-card">
+            <div class="kis-installation-card-header">
+                <div>
+                    <h2>Créer votre compte</h2>
+                    <p>Ce compte disposera des droits d'administration de KIS Kalanso.</p>
+                </div>
+                <div class="kis-installation-badge">Administrateur</div>
+            </div>
+
+            <form method="post" class="kis-installation-form" novalidate>
+                {% csrf_token %}
+
+                <div class="kis-form-grid-2">
+                    <div class="kis-form-group">
+                        <label class="kis-label" for="first_name">
+                            Prénom <span class="kis-required">*</span>
+                        </label>
+                        <input
+                            class="kis-input"
+                            id="first_name"
+                            name="first_name"
+                            value="{{ values.first_name|default:'' }}"
+                            autocomplete="given-name"
+                            required
+                            autofocus
+                        >
+                    </div>
+
+                    <div class="kis-form-group">
+                        <label class="kis-label" for="last_name">
+                            Nom <span class="kis-required">*</span>
+                        </label>
+                        <input
+                            class="kis-input"
+                            id="last_name"
+                            name="last_name"
+                            value="{{ values.last_name|default:'' }}"
+                            autocomplete="family-name"
+                            required
+                        >
+                    </div>
+
+                    <div class="kis-form-group">
+                        <label class="kis-label" for="username">
+                            Nom d'utilisateur <span class="kis-required">*</span>
+                        </label>
+                        <input
+                            class="kis-input"
+                            id="username"
+                            name="username"
+                            value="{{ values.username|default:'' }}"
+                            autocomplete="username"
+                            required
+                        >
+                    </div>
+
+                    <div class="kis-form-group">
+                        <label class="kis-label" for="email">
+                            Adresse e-mail
+                            <span class="kis-optional">facultatif</span>
+                        </label>
+                        <input
+                            class="kis-input"
+                            type="email"
+                            id="email"
+                            name="email"
+                            value="{{ values.email|default:'' }}"
+                            autocomplete="email"
+                        >
+                    </div>
+
+                    <div class="kis-form-group">
+                        <label class="kis-label" for="password">
+                            Mot de passe <span class="kis-required">*</span>
+                        </label>
+                        <input
+                            class="kis-input"
+                            type="password"
+                            id="password"
+                            name="password"
+                            minlength="8"
+                            autocomplete="new-password"
+                            required
+                        >
+                        <small class="kis-form-help">8 caractères minimum.</small>
+                    </div>
+
+                    <div class="kis-form-group">
+                        <label class="kis-label" for="password_confirm">
+                            Confirmer le mot de passe <span class="kis-required">*</span>
+                        </label>
+                        <input
+                            class="kis-input"
+                            type="password"
+                            id="password_confirm"
+                            name="password_confirm"
+                            minlength="8"
+                            autocomplete="new-password"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="kis-installation-notice">
+                    <strong>Important</strong>
+                    <span>
+                        Ce sera le premier compte administrateur de l'établissement.
+                        Conservez soigneusement vos identifiants.
+                    </span>
+                </div>
+
+                <div class="kis-installation-actions">
+                    <span class="kis-form-required-note">
+                        <span class="kis-required">*</span> Champ obligatoire
+                    </span>
+
+                    <button type="submit" class="kis-btn kis-btn-primary">
+                        Créer mon compte
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <footer class="kis-installation-footer">
+            KIS Kalanso · Système de gestion scolaire
+        </footer>
+    </div>
+</section>
+{% endblock %}

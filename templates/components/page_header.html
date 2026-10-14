@@ -1,0 +1,24 @@
+<div class="kis-page-header">
+
+    <div>
+
+        <h1 class="kis-page-title">
+            {{ title }}
+        </h1>
+
+        {% if subtitle %}
+        <p class="kis-page-subtitle">
+            {{ subtitle }}
+        </p>
+        {% endif %}
+
+    </div>
+
+    <div>
+
+        {% block page_actions %}
+        {% endblock %}
+
+    </div>
+
+</div>

@@ -1,0 +1,16 @@
+{% if page_obj.paginator.num_pages > 1 %}
+<nav class="kis-pagination" aria-label="Pagination" style="display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:12px">
+  <small class="kis-text-muted">{{ page_obj.start_index }}–{{ page_obj.end_index }} sur {{ page_obj.paginator.count }}</small>
+  <div style="display:flex;gap:6px;align-items:center">
+    {% if page_obj.has_previous %}
+      <a class="kis-btn kis-btn-sm" href="{% querystring page=1 %}">« Début</a>
+      <a class="kis-btn kis-btn-sm" href="{% querystring page=page_obj.previous_page_number %}">‹ Précédent</a>
+    {% endif %}
+    <span>Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+      <a class="kis-btn kis-btn-sm" href="{% querystring page=page_obj.next_page_number %}">Suivant ›</a>
+      <a class="kis-btn kis-btn-sm" href="{% querystring page=page_obj.paginator.num_pages %}">Fin »</a>
+    {% endif %}
+  </div>
+</nav>
+{% endif %}

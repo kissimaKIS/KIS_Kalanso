@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Fusion de fiches — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header"><div><h1>Fusionner deux fiches élève</h1><p>La fiche de gauche est gardée et complétée ; celle de droite est supprimée après avoir tout transmis.</p></div></div>
+  {% if error %}<div class="kis-alert kis-alert-danger">{{ error }}</div>{% endif %}
+  <div class="kis-grid kis-grid-2" style="margin-bottom:16px">
+    {% with c=keep %}<div class="kis-card" style="border-top:4px solid #2E7D32"><div class="kis-card-body"><h3 style="margin-top:0">Fiche gardée</h3>{% include "administration/corrections/_student_card.html" %}</div></div>{% endwith %}
+    {% with c=drop %}<div class="kis-card" style="border-top:4px solid #C62828"><div class="kis-card-body"><h3 style="margin-top:0">Fiche en double (supprimée)</h3>{% include "administration/corrections/_student_card.html" %}</div></div>{% endwith %}
+  </div>
+  <div class="kis-card"><div class="kis-card-body">
+    <a class="kis-btn kis-btn-sm" href="{% url 'student_merge' drop.student.id keep.student.id %}">⇄ Garder plutôt la fiche de droite</a>
+    <h3>Ce qui va se passer</h3>
+    <ul>{% for l in lines %}<li>{{ l }}</li>{% empty %}<li>Rien d'autre à transmettre.</li>{% endfor %}</ul>
+    {% if blockers %}
+      <div class="kis-alert kis-alert-warning"><strong>Fusion impossible pour l'instant :</strong><ul style="margin:6px 0 0">{% for b in blockers %}<li>{{ b }}</li>{% endfor %}</ul></div>
+    {% else %}
+      <form method="post">{% csrf_token %}
+        <div class="kis-form-group"><label for="reason">Motif (obligatoire)</label><textarea class="kis-input" id="reason" name="reason" rows="2" required minlength="3" placeholder="Ex. doublon créé par un second import Excel">{{ reason }}</textarea></div>
+        <button class="kis-btn kis-btn-danger" type="submit">Confirmer la fusion</button>
+      </form>
+    {% endif %}
+  </div></div>
+</div>
+{% endblock %}

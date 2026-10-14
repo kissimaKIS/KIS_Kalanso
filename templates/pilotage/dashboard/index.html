@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Tableau de bord — KIS Kalanso{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/kis_dashboard.css' %}?v=20260916-04">
+{% endblock %}
+
+{% block content %}
+<div class="kis-page kis-dashboard">
+    <header class="kis-page-header kis-dashboard-header">
+        <div>
+            <div class="kis-dashboard-eyebrow">PILOTAGE DE L'ÉTABLISSEMENT</div>
+            <h1 class="kis-page-title">Tableau de bord</h1>
+            <p class="kis-page-subtitle">{{ school_year.name }} · l'essentiel, maintenant et à venir</p>
+        </div>
+    </header>
+
+    {% if "students.view" in kis_perms or "finance.collect" in kis_perms or "school_life.manage" in kis_perms or "personnel.manage" in kis_perms %}
+    <section class="kis-dashboard-section">
+        <div class="kis-dashboard-section-heading">
+            <div>
+                <h2>À retenir maintenant</h2>
+                <p>Les informations qui méritent votre attention aujourd'hui.</p>
+            </div>
+            <div class="kis-dashboard-quick-actions">
+                {% if "students.manage" in kis_perms %}<a class="kis-btn kis-btn-primary" href="{% url 'enrollment_create' %}"><i data-lucide="user-plus"></i> Nouvelle inscription</a>{% endif %}
+                {% if "finance.collect" in kis_perms %}<a class="kis-btn" href="{% url 'payment_start' %}"><i data-lucide="banknote"></i> Nouvel encaissement</a>{% endif %}
+            </div>
+        </div>
+        <div class="kis-grid kis-grid-6">
+            {% if "students.view" in kis_perms %}
+            <a class="kis-card kis-dashboard-stat-card kis-dashboard-stat-link" href="{% url 'student_list' %}" title="Voir la liste des élèves">
+                <div class="kis-dashboard-stat-icon"><i data-lucide="users"></i></div>
+                <div class="kis-dashboard-stat-content">
+                    <strong>{{ students_count }}</strong><span>Élèves</span>
+                    <div class="kis-dashboard-gender"><span>♂ {{ boys_count }} garçons</span><span>♀ {{ girls_count }} filles</span>{% if unknown_sex_count %}<span>⚠ {{ unknown_sex_count }} non renseigné</span>{% endif %}</div>
+                </div>
+            </a>
+            {% endif %}
+            {% if "students.view" in kis_perms %}
+            <a class="kis-card kis-dashboard-stat-card kis-dashboard-stat-link" href="{% url 'classe_list' %}" title="Voir les classes et leurs effectifs">
+                <div class="kis-dashboard-stat-icon"><i data-lucide="school"></i></div>
+                <div class="kis-dashboard-stat-content"><strong>{{ classes_count }}</strong><span>Classes</span></div>
+            </a>
+            {% endif %}
+            {% if "school_life.manage" in kis_perms %}
+            <a class="kis-card kis-dashboard-stat-card kis-dashboard-stat-link" href="{% url 'attendance_list' %}" title="Voir le détail des présences élèves">
+                <div class="kis-dashboard-stat-icon"><i data-lucide="calendar-check"></i></div>
+                <div class="kis-dashboard-stat-content"><strong>{{ attendance_rate|floatformat:"1" }}%</strong><span>Présence élèves</span>{% if attendance_date %}<small>Dernière saisie : {{ attendance_date|date:"d/m/Y" }}</small>{% endif %}</div>
+            </a>
+            {% endif %}
+            {% if "personnel.manage" in kis_perms or "school_life.manage" in kis_perms %}
+            <a class="kis-card kis-dashboard-stat-card kis-dashboard-stat-link" href="{% if "school_life.manage" in kis_perms %}{% url 'staff_attendance_list' %}{% else %}{% url 'teacher_list' %}{% endif %}" title="Voir le détail des enseignants">
+                <div class="kis-dashboard-stat-icon"><i data-lucide="user-check"></i></div>
+                <div class="kis-dashboard-stat-content"><strong>{{ teacher_attendance_rate|floatformat:"1" }}%</strong><span>Présence enseignants</span>{% if teacher_attendance_date %}<small>Dernière saisie : {{ teacher_attendance_date|date:"d/m/Y" }}</small>{% endif %}</div>
+            </a>
+            {% endif %}
+            {% if "finance.collect" in kis_perms %}
+            <a class="kis-card kis-dashboard-stat-card kis-dashboard-stat-link" href="{% url 'payment_list' %}" title="Voir les encaissements">
+                <div class="kis-dashboard-stat-icon"><i data-lucide="banknote"></i></div>
+                <div class="kis-dashboard-stat-content"><strong class="kis-dashboard-stat-money">{{ total_paid_display }}</strong><span>Encaissé</span></div>
+            </a>
+            {% endif %}
+            {% if "finance.manage" in kis_perms %}
+            <a class="kis-card kis-dashboard-stat-card kis-dashboard-stat-link" href="{% url 'debt_report' %}" title="Voir les créances">
+                <div class="kis-dashboard-stat-icon"><i data-lucide="wallet-cards"></i></div>
+                <div class="kis-dashboard-stat-content"><strong class="kis-dashboard-stat-money">{{ cumulative_remaining_display }}</strong><span>Reste à recouvrer</span></div>
+            </a>
+            {% endif %}
+        </div>
+    </section>
+
+    {% endif %}
+
+    {% if teacher_scope %}
+    <section class="kis-dashboard-section">
+        <section class="kis-card kis-dashboard-section-card">
+            <div class="kis-card-header kis-dashboard-card-header">
+                <div>
+                    <span class="kis-dashboard-section-label">MON ENSEIGNEMENT</span>
+                    <strong>Mes affectations</strong>
+                </div>
+                <i data-lucide="book-open" aria-hidden="true"></i>
+            </div>
+            <div class="kis-card-body">
+                {% if not teacher_profile %}
+                <p class="kis-dashboard-muted">Votre compte n'est rattaché à aucune fiche enseignant. Contactez l'administrateur.</p>
+                {% endif %}
+                {% for row in my_teachings %}
+                <div class="kis-dashboard-action-row">
+                    <span><strong>{{ row.classe.display_name }}</strong> — {{ row.subject_label }}</span>
+                    <span>{{ row.students }} élève{{ row.students|pluralize }}{% if row.results_url %} · <a href="{{ row.results_url }}">Saisir les notes</a>{% endif %}</span>
+                </div>
+                {% empty %}
+                {% if teacher_profile %}<p class="kis-dashboard-muted">Aucune affectation pour l'année scolaire active.</p>{% endif %}
+                {% endfor %}
+                <div class="kis-dashboard-action-links"><a class="kis-btn kis-btn-primary" href="{% url 'term_list' %}">Saisir mes notes</a> <a class="kis-btn kis-btn-outline" href="{% url 'teaching_list' %}">Voir mes affectations</a></div>
+            </div>
+        </section>
+    </section>
+    {% endif %}
+
+    {% if "students.view" in kis_perms %}
+    <section class="kis-dashboard-section">
+        <div class="kis-dashboard-section-heading">
+            <div>
+                <h2>Effectifs par niveau</h2>
+                <p>Répartition des élèves dans les niveaux réellement ouverts cette année.</p>
+            </div>
+        </div>
+        <section class="kis-card kis-dashboard-section-card">
+            <div class="kis-card-body kis-dashboard-hierarchy-wrap">
+                {% for sector in hierarchy %}
+                <details class="kis-dashboard-sector" {% if forloop.first %}open{% endif %}>
+                    <summary>
+                        <span class="kis-dashboard-sector-title"><i data-lucide="chevron-right" aria-hidden="true"></i>{{ sector.label }}</span>
+                        <span class="kis-dashboard-sector-meta">{{ sector.classes }} classe{{ sector.classes|pluralize }} · {{ sector.students }} élève{{ sector.students|pluralize }}</span>
+                    </summary>
+                    <table class="kis-table kis-dashboard-hierarchy">
+                        <thead>
+                            <tr>
+                                <th>Niveau</th>
+                                <th>Classes</th>
+                                <th>Élèves</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for level in sector.levels %}
+                            <tr>
+                                <td><strong>{{ level.name }}</strong></td>
+                                <td>{{ level.classes }}</td>
+                                <td><strong>{{ level.students }}</strong></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </details>
+                {% empty %}
+                <p class="kis-dashboard-muted">Aucun secteur ni niveau n'est encore ouvert pour l'année scolaire active.</p>
+                {% endfor %}
+            </div>
+        </section>
+    </section>
+
+    {% endif %}
+
+    <div class="kis-dashboard-columns">
+        {% if "students.view" in kis_perms or "pedagogy.manage" in kis_perms %}
+        <section class="kis-card kis-dashboard-section-card">
+            <div class="kis-card-header kis-dashboard-card-header">
+                <div>
+                    <span class="kis-dashboard-section-label">DISTINCTION</span>
+                    <strong>Tableau d'honneur</strong>
+                </div>
+                <i data-lucide="trophy" aria-hidden="true"></i>
+            </div>
+            <div class="kis-card-body">
+                {% if latest_term %}
+                    <p class="kis-dashboard-muted">Moyennes des bulletins de la dernière période notée de chaque classe ({{ latest_term.name }}).</p>
+                {% else %}
+                    <p class="kis-dashboard-muted">Aucune note de bulletin n'est encore saisie pour l'année active.</p>
+                {% endif %}
+                {% for row in honor_students_by_class %}
+                <div class="kis-dashboard-action-row">
+                    <span><strong>{{ row.classe.display_name }}</strong> — {{ row.student }} <span class="kis-dashboard-muted">({{ row.term.name }})</span></span>
+                    <strong>{{ row.score_display }}/{{ row.honor_scale|floatformat:"0" }}</strong>
+                </div>
+                {% empty %}
+                {% if latest_term %}<p class="kis-dashboard-muted">Aucun élève n'atteint encore le seuil du tableau d'honneur.</p>{% endif %}
+                {% endfor %}
+                {% if honor_missing_rules %}
+                <p class="kis-dashboard-muted">Seuil du tableau d'honneur non configuré pour : {{ honor_missing_rules|join:", " }}. Renseignez-le dans Administration &gt; Établissement.</p>
+                {% endif %}
+            </div>
+        </section>
+        {% endif %}
+
+        {% if "finance.manage" in kis_perms or "school_life.manage" in kis_perms or "pedagogy.manage" in kis_perms %}
+
+        <section class="kis-card kis-dashboard-section-card">
+            <div class="kis-card-header kis-dashboard-card-header">
+                <div>
+                    <span class="kis-dashboard-section-label">À TRAITER</span>
+                    <strong>Points d'attention</strong>
+                </div>
+                <i data-lucide="clipboard-check" aria-hidden="true"></i>
+            </div>
+            <div class="kis-card-body">
+                {% if "finance.manage" in kis_perms %}
+                <div class="kis-dashboard-action-row">
+                    <span>Factures non soldées</span><strong>{{ unpaid_count }}</strong>
+                </div>
+                {% endif %}
+                {% if "school_life.manage" in kis_perms %}
+                <div class="kis-dashboard-action-row">
+                    <span>Situations de vie scolaire</span><strong>{{ discipline_open }}</strong>
+                </div>
+                {% endif %}
+                {% if "pedagogy.manage" in kis_perms %}
+                <div class="kis-dashboard-action-row">
+                    <span>Décisions de passage en attente</span><strong>{{ pending_proposals }}</strong>
+                </div>
+                {% endif %}
+                <div class="kis-dashboard-action-links">
+                    {% if discipline_open and "school_life.manage" in kis_perms %}<a class="kis-btn kis-btn-outline" href="{% url 'discipline_list' %}">Vie scolaire</a>{% endif %}
+                </div>
+            </div>
+        </section>
+        {% endif %}
+    </div>
+
+    <section class="kis-dashboard-section">
+        <div class="kis-dashboard-section-heading">
+            <div>
+                <h2>À venir</h2>
+                <p>Ce que l'établissement doit anticiper.</p>
+            </div>
+        </div>
+        <div class="kis-dashboard-columns">
+            <section class="kis-card kis-dashboard-section-card">
+                <div class="kis-card-header kis-dashboard-card-header">
+                    <div>
+                        <span class="kis-dashboard-section-label">PROCHAINES INFORMATIONS</span>
+                        <strong>Annonces programmées</strong>
+                    </div>
+                    <i data-lucide="megaphone" aria-hidden="true"></i>
+                </div>
+                <div class="kis-card-body">
+                    {% for announcement in upcoming_announcements %}
+                    <div class="kis-dashboard-list-item">
+                        <strong>{{ announcement.title }}</strong>
+                        <p class="kis-dashboard-muted">Prévue le {{ announcement.published_at|date:"d/m/Y H:i" }}</p>
+                    </div>
+                    {% empty %}
+                    <p class="kis-dashboard-muted">Aucune annonce programmée.</p>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section class="kis-card kis-dashboard-section-card">
+                <div class="kis-card-header kis-dashboard-card-header">
+                    <div>
+                        <span class="kis-dashboard-section-label">CALENDRIER SCOLAIRE</span>
+                        <strong>Prochaine échéance</strong>
+                    </div>
+                    <i data-lucide="calendar-clock" aria-hidden="true"></i>
+                </div>
+                <div class="kis-card-body">
+                    {% if upcoming_year %}
+                    <div class="kis-dashboard-feature-value">
+                        <strong>{{ upcoming_year.name }}</strong>
+                        <span>début le {{ upcoming_year.start_date|date:"d/m/Y" }}</span>
+                    </div>
+                    {% elif upcoming_transition %}
+                    <div class="kis-dashboard-feature-value">
+                        <strong>{{ upcoming_transition.target_year.name }}</strong>
+                        <span>transition {{ upcoming_transition.get_status_display|lower }}</span>
+                    </div>
+                    {% else %}
+                    <p class="kis-dashboard-muted">Aucune échéance future enregistrée.</p>
+                    {% endif %}
+                </div>
+            </section>
+        </div>
+    </section>
+
+</div>
+{% endblock %}

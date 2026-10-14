@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+{% load vie_scolaire_tags %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div>
+      <h1>Présences</h1>
+      <p>Choisissez une classe et une date pour saisir et consulter les présences sans quitter cette page.</p>
+    </div>
+  </div>
+
+  <div class="kis-card" style="margin-bottom:20px">
+    <div class="kis-card-header">
+      <div>
+        <h2>Saisie des présences</h2>
+        <p>Une seule page pour toute la journée de la classe.</p>
+      </div>
+    </div>
+    <div class="kis-card-body">
+      <form method="get" class="kis-form-row" style="align-items:end">
+        <div style="flex:1;min-width:240px">
+          <label for="attendance-classe">Classe</label>
+          <select id="attendance-classe" name="classe" required>
+            <option value="">Choisir une classe</option>
+            {% for c in classes %}
+              <option value="{{ c.id }}" {% if selected_class_id == c.id|stringformat:'s' %}selected{% endif %}>{{ c }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div style="min-width:190px">
+          <label for="attendance-date">Date</label>
+          <input id="attendance-date" type="date" name="date" value="{{ selected_date|date:'Y-m-d' }}" required>
+        </div>
+        <div>
+          <button class="kis-btn kis-btn-primary" type="submit">Charger la classe</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {% if selected_class %}
+  <form method="post" class="kis-card" style="margin-bottom:20px">
+    {% csrf_token %}
+    <input type="hidden" name="classe" value="{{ selected_class.id }}">
+    <input type="hidden" name="date" value="{{ selected_date|date:'Y-m-d' }}">
+    <div class="kis-card-header">
+      <div>
+        <h2>{{ selected_class }} — {{ selected_date|date:'d/m/Y' }}</h2>
+        {% if current_day_recorded %}
+          <p><strong>Présences enregistrées.</strong> Cette journée est maintenant en lecture seule.</p>
+        {% else %}
+          <p>{{ enrollments|length }} élève(s). Une seule saisie est autorisée pour cette classe et cette date.</p>
+          {% if draft_attendance_map %}<p class="kis-alert kis-alert-warning" style="margin-top:8px">Une erreur a été détectée : les valeurs déjà saisies sont conservées dans le tableau. Corrigez uniquement la ligne concernée puis réessayez.</p>{% endif %}
+        {% endif %}
+      </div>
+      {% if not current_day_recorded %}
+        <button type="button" class="kis-btn" id="mark-all-present">Tout présent</button>
+      {% endif %}
+    </div>
+    <div class="kis-card-body" style="overflow-x:auto">
+      <table class="kis-table">
+        <thead>
+          <tr>
+            <th>Élève</th>
+            <th>Statut</th>
+            <th>Justifiée</th>
+            <th>Motif / justificatif</th>
+            <th>Retard (min)</th>
+            <th>Observation</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for e in enrollments %}
+          {% with r=attendance_map|get_item:e.id %}
+          <tr>
+            <td><strong>{{ e.student }}</strong><br><small>{{ e.student.matricule }}</small></td>
+            <td>
+              {% if current_day_recorded %}
+                {{ r.get_status_display|default:"—" }}
+              {% else %}
+                {% with d=draft_attendance_map|get_item:e.id %}
+                <select name="status_{{ e.id }}" class="attendance-status">
+                  <option value="PRESENT" {% if d %}{% if d.status == 'PRESENT' %}selected{% endif %}{% elif not r or r.status == 'PRESENT' %}selected{% endif %}>Présent</option>
+                  <option value="ABSENT" {% if d and d.status == 'ABSENT' %}selected{% elif not d and r and r.status == 'ABSENT' %}selected{% endif %}>Absent</option>
+                  <option value="LATE" {% if d and d.status == 'LATE' %}selected{% elif not d and r and r.status == 'LATE' %}selected{% endif %}>Retard</option>
+                </select>
+                {% endwith %}
+              {% endif %}
+            </td>
+            <td>
+              {% if current_day_recorded %}
+                {% if r and r.is_justified %}<strong>Oui</strong>{% else %}—{% endif %}
+              {% else %}
+                {% with d=draft_attendance_map|get_item:e.id %}
+                <input type="checkbox" name="justified_{{ e.id }}" {% if d and d.is_justified %}checked{% elif not d and r and r.is_justified %}checked{% endif %}>
+                {% endwith %}
+              {% endif %}
+            </td>
+            <td>
+              {% if current_day_recorded %}
+                {% if r and r.justification_note %}{{ r.justification_note }}{% else %}—{% endif %}
+              {% else %}
+                {% with d=draft_attendance_map|get_item:e.id %}
+                <input name="justification_note_{{ e.id }}" value="{% if d %}{{ d.justification_note }}{% elif r %}{{ r.justification_note }}{% endif %}" placeholder="Motif / justificatif">
+                {% endwith %}
+              {% endif %}
+            </td>
+            <td>
+              {% if current_day_recorded %}
+                {% if r and r.late_minutes %}{{ r.late_minutes }}{% else %}—{% endif %}
+              {% else %}
+                {% with d=draft_attendance_map|get_item:e.id %}
+                <input type="number" name="late_minutes_{{ e.id }}" min="1" value="{% if d %}{{ d.late_minutes }}{% elif r and r.late_minutes %}{{ r.late_minutes }}{% endif %}" style="max-width:110px">
+                {% endwith %}
+              {% endif %}
+            </td>
+            <td>
+              {% if current_day_recorded %}
+                {{ r.note|default:"—" }}
+              {% else %}
+                {% with d=draft_attendance_map|get_item:e.id %}
+                <input name="note_{{ e.id }}" value="{% if d %}{{ d.note }}{% elif r %}{{ r.note }}{% endif %}" placeholder="Observation">
+                {% endwith %}
+              {% endif %}
+            </td>
+          </tr>
+          {% endwith %}
+        {% empty %}
+          <tr><td colspan="6">Aucun élève inscrit dans cette classe.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if not current_day_recorded %}
+    <div class="kis-card-footer" style="display:flex;justify-content:flex-end;gap:10px">
+      <button class="kis-btn kis-btn-primary kis-btn-lg" type="submit">Enregistrer les présences</button>
+    </div>
+    {% else %}
+    <div class="kis-card-footer">
+      <span class="kis-alert kis-alert-info">Enregistrement définitif pour cette classe et cette date.</span>
+    </div>
+    {% endif %}
+  </form>
+  {% else %}
+    <div class="kis-card" style="margin-bottom:20px">
+      <div class="kis-card-body">
+        <strong>Commencez par choisir une classe.</strong>
+        <p>Vous resterez ensuite sur cette page pour saisir les présences de la journée et consulter leur historique.</p>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="kis-card">
+    <div class="kis-card-header">
+      <div>
+        <h2>Historique des présences</h2>
+        <p>Les enregistrements sont regroupés par date et restent consultables en lecture seule.</p>
+      </div>
+      <form method="get" class="kis-form-row" style="margin:0">
+        {% if selected_class_id %}<input type="hidden" name="classe" value="{{ selected_class_id }}">{% endif %}
+        {% if selected_date %}<input type="hidden" name="date" value="{{ selected_date|date:'Y-m-d' }}">{% endif %}
+        <input type="date" name="historique_date" value="{{ history_date }}">
+        <button class="kis-btn" type="submit">Filtrer</button>
+      </form>
+    </div>
+    <div class="kis-card-body">
+      {% for group in history_groups %}
+        <details class="kis-attendance-history" {% if history_date %}open{% elif forloop.first %}open{% endif %} style="margin-bottom:12px;border:1px solid #dbe3ee;border-radius:10px;padding:0 14px">
+          <summary style="cursor:pointer;padding:14px 0;font-weight:700">
+            {{ group.date|date:"d/m/Y" }} — {% if group.summary is not None %}{{ group.total }}{% else %}{{ group.records|length }}{% endif %} enregistrement(s)
+          </summary>
+          {% if group.summary is not None %}
+          <div style="overflow-x:auto;padding-bottom:14px">
+            <table class="kis-table">
+              <thead><tr><th>Classe</th><th>Élèves pointés</th><th>Présents</th><th>Absents</th><th>Retards</th><th></th></tr></thead>
+              <tbody>
+              {% for row in group.summary %}
+                <tr>
+                  <td>{{ row.classe.display_name|default:"—" }}</td>
+                  <td>{{ row.total }}</td><td>{{ row.present }}</td><td>{{ row.absent }}</td><td>{{ row.late }}</td>
+                  <td>{% if row.classe %}<a class="kis-btn kis-btn-sm" href="?classe={{ row.classe.id }}&historique_date={{ group.date|date:'Y-m-d' }}">Détail</a>{% endif %}</td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div style="overflow-x:auto;padding-bottom:14px">
+            <table class="kis-table">
+              <thead><tr><th>Élève</th><th>Classe</th><th>Statut</th><th>Justifiée</th><th>Motif / justificatif</th><th>Retard</th><th>Observation</th></tr></thead>
+              <tbody>
+              {% for r in group.records %}
+                <tr>
+                  <td>{{ r.enrollment.student }}</td>
+                  <td>{{ r.enrollment.classe }}</td>
+                  <td>{{ r.get_status_display }}</td>
+                  <td>{% if r.is_justified %}<strong>Oui</strong>{% else %}—{% endif %}</td>
+                  <td>{% if r.justification_note %}{{ r.justification_note }}{% else %}—{% endif %}</td>
+                  <td>{% if r.late_minutes %}{{ r.late_minutes }} min{% else %}—{% endif %}</td>
+                  <td>{{ r.note|default:"—" }}</td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% endif %}
+        </details>
+      {% empty %}
+        <p>Aucune présence enregistrée.</p>
+      {% endfor %}
+      {% if history_page.paginator.num_pages > 1 %}
+      <nav style="display:flex;gap:6px;align-items:center;justify-content:flex-end;margin-top:8px">
+        {% if history_page.has_previous %}<a class="kis-btn kis-btn-sm" href="{% querystring historique_page=history_page.previous_page_number %}">‹ Dates plus récentes</a>{% endif %}
+        <span>Page {{ history_page.number }} / {{ history_page.paginator.num_pages }}</span>
+        {% if history_page.has_next %}<a class="kis-btn kis-btn-sm" href="{% querystring historique_page=history_page.next_page_number %}">Dates plus anciennes ›</a>{% endif %}
+      </nav>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const button = document.getElementById('mark-all-present');
+  if (button) {
+    button.addEventListener('click', function () {
+      document.querySelectorAll('.attendance-status').forEach(function (select) {
+        select.value = 'PRESENT';
+      });
+      document.querySelectorAll('input[type="checkbox"][name^="justified_"]').forEach(function (checkbox) {
+        checkbox.checked = false;
+      });
+      document.querySelectorAll('input[name^="late_minutes_"]').forEach(function (input) {
+        input.value = '';
+      });
+    });
+  }
+});
+</script>
+{% endblock %}

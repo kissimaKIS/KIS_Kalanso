@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div>
+      <h1>Évaluations &amp; bulletins</h1>
+      <p>{% if school_year %}{{ school_year.name }}{% else %}Aucune année scolaire active{% endif %}</p>
+    </div>
+    {% if "pedagogy.manage" in kis_perms %}
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <a class="kis-btn" href="{% url 'term_create' %}" data-modal-url="{% url 'term_create' %}" data-modal-title="Nouvelle période">Nouvelle période</a>
+      <a class="kis-btn kis-btn-primary" href="{% url 'evaluation_create' %}" data-modal-url="{% url 'evaluation_create' %}" data-modal-title="Nouvelle évaluation">Nouvelle évaluation</a>
+      <a class="kis-btn" href="{% url 'passage_list' %}">Propositions de passage</a>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="kis-card" style="margin-bottom:16px">
+    <div class="kis-card-header">
+      <div>
+        <h2 style="margin:0">Périodes</h2>
+        <p style="margin:4px 0 0">Périodes disponibles pour l’année scolaire active</p>
+      </div>
+    </div>
+    <div class="kis-card-body">
+      {% if terms %}
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          {% for term in terms %}<span class="kis-badge">{{ term.order }}. {{ term.name }}</span>{% endfor %}
+        </div>
+      {% else %}
+        <p style="margin:0">Aucune période n’est encore créée. Créez une période avant de créer une évaluation.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="kis-alert kis-alert-secondary" style="margin-bottom:16px">
+    Deux choses distinctes sur cette page : les <strong>évaluations</strong> ci-dessous (devoirs, interrogations…) servent au suivi pédagogique et n'apparaissent jamais sur le bulletin. Pour les notes qui comptent sur le bulletin, utilisez le bouton <strong>« Notes du bulletin »</strong> de chaque classe.
+  </div>
+
+  {% for group in class_groups %}
+    <div class="kis-card" style="margin-bottom:16px">
+      <div class="kis-card-header">
+        <div>
+          <h2 style="margin:0">{{ group.classe.display_name }}</h2>
+          <p style="margin:4px 0 0">Évaluations de la classe</p>
+        </div>
+        {% if terms %}
+          {% with first_term=terms|first %}
+            {% if first_term %}
+              {% if group.bulletin_configured %}
+                {% if "pedagogy.manage" in kis_perms %}<a class="kis-btn kis-btn-sm" href="{% url 'bulletin_config' group.classe.id %}">Paramétrer le bulletin</a>{% endif %}
+                {% if "grades.enter" in kis_perms %}<a class="kis-btn kis-btn-sm kis-btn-primary" href="{% url 'class_results' group.classe.id first_term.id %}">Notes du bulletin</a>{% endif %}
+              {% elif "pedagogy.manage" in kis_perms %}
+                <a class="kis-btn kis-btn-sm kis-btn-primary" href="{% url 'bulletin_config' group.classe.id %}">1. Paramétrer le bulletin</a>
+              {% elif teacher_scope %}
+                <span class="kis-badge">Bulletin non paramétré</span>
+              {% endif %}
+              {% if "bulletins.print" in kis_perms %}
+              <a class="kis-btn kis-btn-sm" href="{% url 'class_bulletins' group.classe.id first_term.id %}">Bulletins</a>
+              <a class="kis-btn kis-btn-sm" href="{% url 'class_ponctuel_summary' group.classe.id first_term.id %}">Bulletin non officiel (ponctuel)</a>
+              {% endif %}
+            {% endif %}
+          {% endwith %}
+        {% endif %}
+      </div>
+      <div class="kis-card-body">
+        {% if group.evaluations %}
+          <div style="display:grid;gap:10px">
+            {% for evaluation in group.evaluations %}
+              <div class="kis-card" style="margin:0">
+                <div class="kis-card-body" style="display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap">
+                  <div>
+                    <strong>{{ evaluation.name }}</strong>
+                    <div>{{ evaluation.get_nature_display }} — {{ evaluation.term.name }} — {{ evaluation.date|date:"d/m/Y" }}</div>
+                  </div>
+                  {% if "grades.enter" in kis_perms %}<a class="kis-btn kis-btn-sm" href="{% url 'evaluation_results' evaluation.id %}">Saisir (suivi, hors bulletin)</a>{% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          {% if not group.bulletin_configured and "pedagogy.manage" in kis_perms %}
+            <div style="margin:0 0 10px;font-weight:600">Étape 1 — Paramétrez le bulletin avant de saisir les notes.</div>
+          {% endif %}
+          <p style="margin:0">Aucune évaluation enregistrée pour cette classe.</p>
+        {% endif %}
+      </div>
+    </div>
+  {% empty %}
+    <div class="kis-card"><div class="kis-card-body">{% if teacher_scope %}Aucune classe ne vous est affectée pour l’année scolaire active.{% else %}Aucune classe ouverte pour l’année scolaire active.{% endif %}</div></div>
+  {% endfor %}
+</div>
+{% endblock %}

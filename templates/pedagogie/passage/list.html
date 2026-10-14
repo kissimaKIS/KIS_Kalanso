@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load kis_tags %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div><h1>Décisions de passage</h1><p>{% if school_year %}{{ school_year.name }} — préparation par classe.{% else %}Aucune année scolaire active.{% endif %}</p></div>
+  </div>
+  <div class="kis-card"><div class="kis-card-body">
+    <table class="kis-table">
+      <thead><tr><th>Classe</th><th>Secteur</th><th>État</th><th>Document</th><th></th></tr></thead>
+      <tbody>
+      {% for classe in classes %}
+      {% with passage=passages|get_item:classe.id %}
+      <tr><td><strong>{{ classe.display_name }}</strong></td><td>{{ classe.education_level.get_school_type_display }}</td><td>{% if passage %}{{ passage.get_status_display }}{% else %}À préparer{% endif %}</td><td>{% if passage and passage.is_fundamental %}<a class="kis-btn kis-btn-sm" target="_blank" href="{% url 'passage_print' passage.id %}">PDF</a>{% else %}<span class="kis-dashboard-muted">—</span>{% endif %}</td><td><a class="kis-btn kis-btn-sm" href="{% url 'passage_detail' classe.id %}">Ouvrir</a></td></tr>
+      {% endwith %}
+      {% empty %}<tr><td colspan="5">Aucune classe ouverte.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div></div>
+</div>
+{% endblock %}

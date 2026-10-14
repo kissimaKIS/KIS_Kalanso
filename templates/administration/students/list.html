@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Élèves — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div>
+      <h1>Élèves</h1>
+      {% if all_mode %}
+        <p>Toutes les années scolaires — recherche dans l'historique complet</p>
+      {% elif is_current_year %}
+        <p>{{ viewed_year.name }} — élèves inscrits dans l'année active</p>
+      {% else %}
+        <p>{{ viewed_year.name }} — <strong>année {% if viewed_year.is_closed %}clôturée{% else %}non active{% endif %}</strong>, en consultation. Les certificats, relevés et bulletins de cette année restent imprimables depuis la fiche de chaque élève.</p>
+      {% endif %}
+    </div>
+    <div>
+      {% if not all_mode %}<a class="kis-btn" href="{% url 'student_list_pdf' %}?annee={{ viewed_year.id }}{% if selected_classe %}&classe={{ selected_classe }}{% endif %}" target="_blank">PDF officiel</a>{% endif %}{% if "finance.collect" in kis_perms or "students.manage" in kis_perms %}<a class="kis-btn" href="{% url 'option_lists' %}">Listes par option (cantine, transport…)</a>{% endif %}{% if "data.correct" in kis_perms %}<a class="kis-btn" href="{% url 'student_duplicates' %}">Doublons</a><a class="kis-btn" href="{% url 'matricule_generate' %}">Matricules automatiques</a>{% endif %}
+      {% if is_current_year %}<a class="kis-btn kis-btn-primary" href="{% url 'enrollment_create' %}">Nouvelle inscription</a>{% endif %}
+    </div>
+  </div>
+
+  <div class="kis-grid kis-grid-4" style="margin-bottom:16px">
+    <div class="kis-card"><div class="kis-card-body"><strong>{{ total_students }}</strong><div>Élèves</div></div></div>
+    <div class="kis-card"><div class="kis-card-body"><strong>{{ boys }}</strong><div>Garçons</div></div></div>
+    <div class="kis-card"><div class="kis-card-body"><strong>{{ girls }}</strong><div>Filles</div></div></div>
+    <div class="kis-card"><div class="kis-card-body"><strong>{{ unknown_sex }}</strong><div>Sexe non renseigné</div></div></div>
+  </div>
+
+  <div class="kis-card" style="margin-bottom:16px">
+    <div class="kis-card-body">
+      <form method="get" class="kis-form-row">
+        <select class="kis-select" name="annee" onchange="if(this.form.classe){this.form.classe.value='';}this.form.submit()" title="Année scolaire">
+          {% for y in all_years %}
+            <option value="{{ y.id }}" {% if not all_mode and viewed_year.id == y.id %}selected{% endif %}>{{ y.name }}{% if y.is_active and not y.is_closed %} (active){% elif y.is_closed %} (clôturée){% endif %}</option>
+          {% endfor %}
+          <option value="all" {% if all_mode %}selected{% endif %}>Toutes les années</option>
+        </select>
+        <input class="kis-input" type="search" name="q" value="{{ query }}" placeholder="Nom, prénom ou matricule">
+        {% if not all_mode %}
+        <select class="kis-select" name="classe">
+          <option value="">Toutes les classes</option>
+          {% for classe in classes %}
+            <option value="{{ classe.id }}" {% if selected_classe == classe.id|stringformat:'s' %}selected{% endif %}>{{ classe.display_name }}</option>
+          {% endfor %}
+        </select>
+        {% endif %}
+        <button class="kis-btn" type="submit">Rechercher</button>
+        {% if query or selected_classe or selected_year %}<a class="kis-btn" href="{% url 'student_list' %}">Réinitialiser</a>{% endif %}
+      </form>
+    </div>
+  </div>
+
+  <div class="kis-card">
+    <div class="kis-card-body">
+      <table class="kis-table">
+        <thead><tr><th>Matricule</th><th>Élève</th>{% if all_mode %}<th>Année</th>{% endif %}<th>Classe</th><th>Type</th><th>Sexe</th><th></th></tr></thead>
+        <tbody>
+        {% for enrollment in enrollments %}
+          <tr>
+            <td>{{ enrollment.student.matricule|default:"—" }}</td>
+            <td><a href="{% url 'student_detail' enrollment.student.id %}"><strong>{{ enrollment.student.first_name }} {{ enrollment.student.last_name }}</strong></a></td>
+            {% if all_mode %}<td>{{ enrollment.school_year.name }}</td>{% endif %}
+            <td>{{ enrollment.classe.display_name }}</td>
+            <td>{{ enrollment.get_student_type_display }}</td>
+            <td>{{ enrollment.student.get_sex_display|default:"—" }}</td>
+            <td><a class="kis-btn kis-btn-sm" href="{% url 'student_detail' enrollment.student.id %}">Voir</a> <a class="kis-btn kis-btn-sm" href="{% url 'student_edit' enrollment.student.id %}">Modifier</a></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7">Aucun élève trouvé.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% include "components/pagination.html" %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Supprimer un document — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page"><div class="kis-card" style="max-width:640px"><div class="kis-card-body">
+  <h1 style="margin-top:0">Supprimer ce document ?</h1>
+  <p><strong>{{ object.title }}</strong>{% if object.student %} — {{ object.student }}{% endif %}<br><span class="kis-text-muted">Ajouté le {{ object.uploaded_at|date:"d/m/Y" }}. Le fichier sera définitivement effacé.</span></p>
+  <form method="post" style="display:flex;gap:8px">{% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
+    <button class="kis-btn kis-btn-danger" type="submit">Supprimer définitivement</button>
+    <a class="kis-btn" href="{{ next|default:'/documents/' }}">Annuler</a>
+  </form>
+</div></div></div>
+{% endblock %}

@@ -1,0 +1,123 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}KIS Kalanso{% endblock %}</title>
+<link rel="stylesheet" href="{% static 'css/kis.css' %}?v=20260830-01">
+<link rel="stylesheet" href="{% static 'css/kis_bootstrap_installation_patch.css' %}?v=20260810-01">
+<link rel="stylesheet" href="{% static 'css/kis_back_link.css' %}?v=20260810-01">
+{% block extra_css %}{% endblock %}
+</head>
+<body>
+<div class="kis-app">
+{% if request.user.is_authenticated %}
+
+    {% if school %}
+        {% include "includes/sidebar.html" %}
+        <div class="kis-main">
+            {% include "includes/navbar.html" %}
+            <main class="kis-content">
+                <div class="kis-container">
+    {% else %}
+        <main class="kis-bootstrap-main">
+            <div class="kis-bootstrap-container">
+    {% endif %}
+
+            {% if school and request.resolver_match.url_name != 'dashboard' and request.resolver_match.url_name != 'dashboard_page' %}
+                <div class="kis-context-tabs" aria-label="Navigation de la section">
+                    {% if request.resolver_match.url_name == 'enrollment_create' or request.resolver_match.url_name == 'classe_list' or request.resolver_match.url_name == 'add_classe' or request.resolver_match.url_name == 'classe_detail' or request.resolver_match.url_name == 'add_student' or request.resolver_match.url_name == 'import_students' or request.resolver_match.url_name == 'student_detail' or request.resolver_match.url_name == 'student_list' or request.resolver_match.url_name == 'matricule_generate' or request.resolver_match.url_name == 'student_edit' %}
+                        {% if "students.manage" in kis_perms %}<a href="{% url 'enrollment_create' %}" class="{% if request.resolver_match.url_name == 'enrollment_create' %}active{% endif %}">Inscriptions</a>{% endif %}
+                        {% if "students.view" in kis_perms %}<a href="{% url 'classe_list' %}" class="{% if request.resolver_match.url_name == 'classe_list' or request.resolver_match.url_name == 'add_classe' or request.resolver_match.url_name == 'classe_detail' or request.resolver_match.url_name == 'add_student' or request.resolver_match.url_name == 'import_students' or request.resolver_match.url_name == 'student_detail' %}active{% endif %}">Classes</a>{% endif %}
+                        {% if "students.view" in kis_perms %}<a href="{% url 'student_list' %}" class="{% if request.resolver_match.url_name == 'student_list' %}active{% endif %}">Élèves</a>{% endif %}
+                    {% elif request.resolver_match.url_name == 'teacher_list' or request.resolver_match.url_name == 'teacher_pdf' or request.resolver_match.url_name == 'teacher_payment_list' or request.resolver_match.url_name == 'teacher_payment_create' or request.resolver_match.url_name == 'teacher_payment_pdf' or request.resolver_match.url_name == 'teacher_create' or request.resolver_match.url_name == 'other_personnel_list' or request.resolver_match.url_name == 'other_personnel_pdf' or request.resolver_match.url_name == 'other_personnel_create' or request.resolver_match.url_name == 'other_personnel_edit' or request.resolver_match.url_name == 'other_personnel_payment_list' or request.resolver_match.url_name == 'other_personnel_payment_create' or request.resolver_match.url_name == 'other_personnel_payment_pdf' or request.resolver_match.url_name == 'permanent_annual_statement' or request.resolver_match.url_name == 'hourly_monthly_statement' %}
+                        {% if "personnel.manage" in kis_perms %}<a href="{% url 'teacher_list' %}" class="{% if request.resolver_match.url_name == 'teacher_list' or request.resolver_match.url_name == 'teacher_create' or request.resolver_match.url_name == 'teacher_pdf' %}active{% endif %}">Enseignants</a>{% endif %}
+                        {% if "personnel.manage" in kis_perms %}<a href="{% url 'other_personnel_list' %}" class="{% if request.resolver_match.url_name == 'other_personnel_list' or request.resolver_match.url_name == 'other_personnel_pdf' or request.resolver_match.url_name == 'other_personnel_create' or request.resolver_match.url_name == 'other_personnel_edit' %}active{% endif %}">Autre personnel</a>{% endif %}
+                        {% if "salaries.manage" in kis_perms %}<a href="{% url 'teacher_payment_list' %}" class="{% if request.resolver_match.url_name == 'teacher_payment_list' or request.resolver_match.url_name == 'teacher_payment_create' %}active{% endif %}">Salaires enseignants</a>{% endif %}
+                        {% if "salaries.manage" in kis_perms %}<a href="{% url 'other_personnel_payment_list' %}" class="{% if request.resolver_match.url_name == 'other_personnel_payment_list' or request.resolver_match.url_name == 'other_personnel_payment_create' %}active{% endif %}">Salaires personnel</a>{% endif %}
+                        {% if "salaries.manage" in kis_perms %}<a href="{% url 'permanent_annual_statement' %}" class="{% if request.resolver_match.url_name == 'permanent_annual_statement' %}active{% endif %}">État annuel salaires</a>{% endif %}
+                        {% if "salaries.manage" in kis_perms %}<a href="{% url 'hourly_monthly_statement' %}" class="{% if request.resolver_match.url_name == 'hourly_monthly_statement' %}active{% endif %}">Salaires horaires</a>{% endif %}
+                    {% elif request.resolver_match.url_name == 'teaching_list' or request.resolver_match.url_name == 'teaching_create' or request.resolver_match.url_name == 'teaching_delete' or request.resolver_match.url_name == 'term_list' or request.resolver_match.url_name == 'term_create' or request.resolver_match.url_name == 'evaluation_create' or request.resolver_match.url_name == 'evaluation_results' or request.resolver_match.url_name == 'evaluation_subjects' or request.resolver_match.url_name == 'grade_entry' or request.resolver_match.url_name == 'class_results' or request.resolver_match.url_name == 'class_bulletins' or request.resolver_match.url_name|slice:':7' == 'mobile_' %}
+                        {% if "teachings.view" in kis_perms %}<a href="{% url 'teaching_list' %}" class="{% if request.resolver_match.url_name == 'teaching_list' or request.resolver_match.url_name == 'teaching_create' or request.resolver_match.url_name == 'teaching_delete' %}active{% endif %}">Affectations</a>{% endif %}
+                        {% if "grades.enter" in kis_perms or "bulletins.print" in kis_perms %}<a href="{% url 'term_list' %}" class="{% if request.resolver_match.url_name == 'term_list' or request.resolver_match.url_name == 'term_create' or request.resolver_match.url_name == 'evaluation_create' or request.resolver_match.url_name == 'evaluation_results' or request.resolver_match.url_name == 'evaluation_subjects' or request.resolver_match.url_name == 'grade_entry' or request.resolver_match.url_name == 'class_results' or request.resolver_match.url_name == 'class_bulletins' %}active{% endif %}">Évaluations &amp; bulletins</a>{% endif %}
+                        {% if "pedagogy.manage" in kis_perms %}<a href="{% url 'mobile_home' %}" class="{% if request.resolver_match.url_name|slice:':7' == 'mobile_' %}active{% endif %}">Saisie mobile</a>{% endif %}
+                    {% elif request.resolver_match.url_name == 'passage_list' or request.resolver_match.url_name == 'passage_detail' or request.resolver_match.url_name == 'passage_cap_decide' or request.resolver_match.url_name == 'passage_director_validate' or request.resolver_match.url_name == 'passage_print' %}
+                        {% if "grades.enter" in kis_perms or "bulletins.print" in kis_perms %}<a href="{% url 'term_list' %}">Évaluations &amp; bulletins</a>{% endif %}
+                        {% if "pedagogy.manage" in kis_perms %}<a href="{% url 'passage_list' %}" class="active">Propositions</a>{% endif %}
+                    {% elif request.resolver_match.url_name == 'attendance_list' or request.resolver_match.url_name == 'attendance_mark' or request.resolver_match.url_name == 'attendance_week_pdf' or request.resolver_match.url_name == 'discipline_list' or request.resolver_match.url_name == 'discipline_create' or request.resolver_match.url_name == 'staff_attendance_list' or request.resolver_match.url_name == 'pointage_home' %}
+                        <a href="{% url 'attendance_list' %}" class="{% if request.resolver_match.url_name == 'attendance_list' or request.resolver_match.url_name == 'attendance_mark' %}active{% endif %}">Présences</a>
+                        <a href="{% url 'discipline_list' %}" class="{% if request.resolver_match.url_name == 'discipline_list' or request.resolver_match.url_name == 'discipline_create' %}active{% endif %}">Discipline</a>
+                        <a href="{% url 'staff_attendance_list' %}" class="{% if request.resolver_match.url_name == 'staff_attendance_list' %}active{% endif %}">Pointage personnel</a>
+                        <a href="{% url 'pointage_home' %}" class="{% if request.resolver_match.url_name == 'pointage_home' %}active{% endif %}">Pointage QR</a>
+                    {% elif request.resolver_match.url_name == 'fee_type_list' or request.resolver_match.url_name == 'fee_type_create' or request.resolver_match.url_name == 'fee_type_create_for_class' or request.resolver_match.url_name == 'fee_components' or request.resolver_match.url_name == 'invoice_ventilation' or request.resolver_match.url_name == 'invoice_list' or request.resolver_match.url_name == 'invoice_create' or request.resolver_match.url_name == 'payment_list' or request.resolver_match.url_name == 'payment_start' or request.resolver_match.url_name == 'payment_create' or request.resolver_match.url_name == 'receipt_pdf' or request.resolver_match.url_name == 'debt_report' or request.resolver_match.url_name == 'financial_adjustment' or request.resolver_match.url_name == 'budget_list' or request.resolver_match.url_name == 'budget_create' or request.resolver_match.url_name == 'budget_pdf' or request.resolver_match.url_name == 'option_lists' or request.resolver_match.url_name == 'family_list' or request.resolver_match.url_name == 'arrears_import' or request.resolver_match.url_name == 'arrears_quick' %}
+                        {% if "finance.manage" in kis_perms %}<a href="{% url 'fee_type_list' %}" class="{% if request.resolver_match.url_name == 'fee_type_list' or request.resolver_match.url_name == 'fee_type_create' or request.resolver_match.url_name == 'fee_type_create_for_class' or request.resolver_match.url_name == 'fee_components' %}active{% endif %}">Frais</a>{% endif %}
+                        {% if "finance.manage" in kis_perms %}<a href="{% url 'invoice_list' %}" class="{% if request.resolver_match.url_name == 'invoice_list' or request.resolver_match.url_name == 'invoice_create' %}active{% endif %}">Facturation</a>{% endif %}
+                        {% if "finance.collect" in kis_perms %}<a href="{% url 'payment_list' %}" class="{% if request.resolver_match.url_name == 'payment_list' or request.resolver_match.url_name == 'payment_start' or request.resolver_match.url_name == 'payment_create' or request.resolver_match.url_name == 'receipt_pdf' %}active{% endif %}">Encaissements</a>{% endif %}
+                        {% if "finance.manage" in kis_perms %}<a href="{% url 'debt_report' %}" class="{% if request.resolver_match.url_name == 'debt_report' %}active{% endif %}">Impayés</a>{% endif %}
+                        {% if "finance.manage" in kis_perms %}<a href="{% url 'arrears_import' %}" class="{% if request.resolver_match.url_name == 'arrears_import' or request.resolver_match.url_name == 'arrears_quick' %}active{% endif %}">Reprise des soldes</a>{% endif %}
+                        {% if "finance.collect" in kis_perms %}<a href="{% url 'family_list' %}" class="{% if request.resolver_match.url_name == 'family_list' %}active{% endif %}">Familles</a>{% endif %}
+                        {% if "finance.collect" in kis_perms or "students.manage" in kis_perms %}<a href="{% url 'option_lists' %}" class="{% if request.resolver_match.url_name == 'option_lists' %}active{% endif %}">Listes par option</a>{% endif %}
+                        {% if "budget.manage" in kis_perms %}<a href="{% url 'budget_list' %}" class="{% if request.resolver_match.url_name == 'budget_list' or request.resolver_match.url_name == 'budget_create' %}active{% endif %}">Budget</a>{% endif %}
+                    {% elif request.resolver_match.url_name == 'announcement_list' or request.resolver_match.url_name == 'announcement_create' or request.resolver_match.url_name == 'announcement_update' or request.resolver_match.url_name == 'announcement_whatsapp' or request.resolver_match.url_name == 'announcement_delete' or request.resolver_match.url_name == 'announcement_pdf' or request.resolver_match.url_name == 'document_list' or request.resolver_match.url_name == 'document_create' or request.resolver_match.url_name == 'document_delete' %}
+                        <a href="{% url 'announcement_list' %}" class="{% if request.resolver_match.url_name == 'announcement_list' or request.resolver_match.url_name == 'announcement_create' or request.resolver_match.url_name == 'announcement_delete' %}active{% endif %}">Communication</a>
+                        <a href="{% url 'document_list' %}" class="{% if request.resolver_match.url_name == 'document_list' or request.resolver_match.url_name == 'document_create' or request.resolver_match.url_name == 'document_delete' %}active{% endif %}">Documents</a>
+                    {% elif request.resolver_match.url_name == 'school_year_list' or request.resolver_match.url_name == 'school_year_create' or request.resolver_match.url_name == 'school_year_activate' or request.resolver_match.url_name == 'school_year_close' or request.resolver_match.url_name == 'school_edit' or request.resolver_match.url_name == 'user_list' or request.resolver_match.url_name == 'user_create' or request.resolver_match.url_name == 'user_edit' or request.resolver_match.url_name == 'user_toggle' or request.resolver_match.url_name == 'school_year_catalog' or request.resolver_match.url_name|slice:':7' == 'backup_' or request.resolver_match.url_name|slice:':8' == 'network_' or request.resolver_match.url_name == 'correction_log' or request.resolver_match.url_name == 'student_duplicates' %}
+                        {% if "school.configure" in kis_perms %}<a href="{% url 'school_year_list' %}" class="{% if request.resolver_match.url_name == 'school_year_list' or request.resolver_match.url_name == 'school_year_create' or request.resolver_match.url_name == 'school_year_activate' or request.resolver_match.url_name == 'school_year_close' %}active{% endif %}">Année scolaire</a>{% endif %}
+                        {% if "pedagogy.manage" in kis_perms %}<a href="{% if school and school_year %}{% url 'school_year_catalog' school_year.id %}{% else %}{% url 'school_year_list' %}{% endif %}" class="{% if request.resolver_match.url_name == 'school_year_catalog' %}active{% endif %}">Référentiel pédagogique</a>{% endif %}
+                        {% if "users.manage" in kis_perms %}<a href="{% url 'user_list' %}" class="{% if request.resolver_match.url_name == 'user_list' or request.resolver_match.url_name == 'user_create' or request.resolver_match.url_name == 'user_toggle' %}active{% endif %}">Utilisateurs</a>{% endif %}
+                        {% if "school.configure" in kis_perms %}<a href="{% url 'school_edit' school.id %}" class="{% if request.resolver_match.url_name == 'school_edit' %}active{% endif %}">Établissement</a>{% endif %}
+                        {% if "school.configure" in kis_perms %}<a href="{% url 'backup_home' %}" class="{% if request.resolver_match.url_name|slice:':7' == 'backup_' %}active{% endif %}">Sauvegardes</a><a href="{% url 'network_settings' %}" class="{% if request.resolver_match.url_name|slice:':8' == 'network_' %}active{% endif %}">Réseau local</a>{% endif %}
+                        {% if "data.correct" in kis_perms %}<a href="{% url 'student_duplicates' %}" class="{% if request.resolver_match.url_name == 'student_duplicates' %}active{% endif %}">Doublons d'élèves</a><a href="{% url 'correction_log' %}" class="{% if request.resolver_match.url_name == 'correction_log' %}active{% endif %}">Journal des corrections</a>{% endif %}
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            {% if license_notice %}
+                <div class="kis-alert kis-alert-{{ license_notice.level }}" role="status">
+                    {{ license_notice.message }}
+                </div>
+            {% endif %}
+
+            {% if kis_viewing_past and kis_viewed_year %}<div class="kis-alert kis-alert-warning" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><span>Vous consultez l'année <strong>{{ kis_viewed_year.name }}</strong>{% if kis_viewed_year.is_closed %} (clôturée){% endif %} : <strong>lecture seule</strong>. Les restes dus peuvent toujours être encaissés.</span><form method="post" action="{% url 'set_viewed_year' %}" style="margin:0">{% csrf_token %}<input type="hidden" name="year" value="active"><input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="kis-btn kis-btn-sm kis-btn-primary" type="submit">Revenir à l'année en cours</button></form></div>{% endif %}
+            {% if kis_back_url %}<a class="kis-back" href="{{ kis_back_url }}">← Retour</a>{% endif %}
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="kis-alert kis-alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            {% block content %}{% endblock %}
+
+    {% if school %}
+                </div>
+            </main>
+            {% include "includes/footer.html" %}
+        </div>
+    {% else %}
+            </div>
+        </main>
+    {% endif %}
+
+{% else %}
+    <main class="kis-public-main">
+        {% block public_content %}{% endblock %}
+    </main>
+{% endif %}
+</div>
+
+<script src="{% static 'vendors/htmx/htmx.min.js' %}" defer></script>
+<script src="{% static 'vendors/lucide/lucide.min.js' %}"></script>
+<div id="kis-modal" class="kis-modal" hidden aria-hidden="true">
+  <div class="kis-modal-backdrop" data-modal-close></div>
+  <section class="kis-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="kis-modal-title">
+    <header class="kis-modal-header"><h2 id="kis-modal-title">Action</h2><button type="button" class="kis-modal-close" data-modal-close aria-label="Fermer">×</button></header>
+    <div id="kis-modal-body" class="kis-modal-body"></div>
+  </section>
+</div>
+<script src="{% static 'js/app.js' %}"></script>
+<script src="{% static 'js/kis_modal.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

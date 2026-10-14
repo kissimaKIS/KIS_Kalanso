@@ -1,0 +1,387 @@
+{% extends "base.html" %}
+{% block title %}Nouvelle inscription — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div>
+      <div class="kis-dashboard-eyebrow">SCOLARITÉ · INSCRIPTION & FACTURATION</div>
+      <h1>Nouvelle inscription</h1>
+      <p>{{ school_year.name }} · l'année active est utilisée automatiquement.</p>
+    </div>
+    <a class="kis-btn" href="{% url 'fiche_inscription_vierge_pdf' %}" target="_blank" rel="noopener">Imprimer des fiches d'inscription vierges</a>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" id="enrollment-form">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="kis-alert kis-alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+
+    <section class="kis-card" style="margin-bottom:18px">
+      <div class="kis-card-header"><strong>1. Informations de l'élève</strong></div>
+      <div class="kis-card-body">
+        <div class="kis-grid kis-grid-3">
+          {% for f in form %}{% if f.name == 'first_name' or f.name == 'last_name' or f.name == 'date_of_birth' %}<div class="kis-form-group"><label>{{ f.label }}</label>{{ f }}{{ f.errors }}</div>{% endif %}{% endfor %}
+        </div>
+        <div class="kis-grid kis-grid-3">
+          {% for f in form %}{% if f.name == 'sex' or f.name == 'place_of_birth' %}<div class="kis-form-group"><label>{{ f.label }}</label>{{ f }}{{ f.errors }}</div>{% endif %}{% endfor %}
+          <div class="kis-form-group"><label for="id_recruitment_year">Année de recrutement</label>{{ form.recruitment_year }}{{ form.recruitment_year.errors }}</div>
+        </div>
+        <div class="kis-grid kis-grid-3">
+          <div class="kis-form-group"><label for="id_matricule">Matricule</label>{{ form.matricule }}<small class="kis-text-muted" id="matricule-hint">Proposé automatiquement d'après l'année de recrutement et le sexe ({{ matricule_example }}) ; vous pouvez le modifier.</small>{{ form.matricule.errors }}</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="kis-card" style="margin-bottom:18px">
+      <div class="kis-card-header"><strong>2. Responsable légal</strong></div>
+      <div class="kis-card-body">
+        <div class="kis-grid kis-grid-3">
+          {% for f in form %}{% if f.name == 'father_name' or f.name == 'mother_name' or f.name == 'whatsapp_phone' %}<div class="kis-form-group"><label>{{ f.label }}</label>{{ f }}{{ f.errors }}</div>{% endif %}{% endfor %}
+        </div>
+        <div class="kis-grid kis-grid-2">
+          {% for f in form %}{% if f.name == 'father_phone' or f.name == 'mother_phone' %}<div class="kis-form-group"><label>{{ f.label }}</label>{{ f }}{{ f.errors }}</div>{% endif %}{% endfor %}
+        </div>
+        <p class="kis-text-muted" style="margin:6px 0 8px"><strong>Personne de contact</strong> (facultatif) : à renseigner si ce n'est pas le père qui suit l'élève. Elle figure alors sur les reçus, la facture famille et les documents internes.</p>
+        <div class="kis-grid kis-grid-3">
+          {% for f in form %}{% if f.name == 'contact_name' or f.name == 'contact_phone' or f.name == 'contact_relation' %}<div class="kis-form-group"><label>{{ f.label }}</label>{{ f }}{{ f.errors }}</div>{% endif %}{% endfor %}
+        </div>
+        <datalist id="kis-relations"><option value="Mère"><option value="Oncle"><option value="Tante"><option value="Grand-père"><option value="Grand-mère"><option value="Frère"><option value="Sœur"><option value="Tuteur"><option value="Tutrice"></datalist>
+      </div>
+    </section>
+
+    <section class="kis-card" style="margin-bottom:18px">
+      <div class="kis-card-header"><strong>3. Scolarité</strong></div>
+      <div class="kis-card-body">
+        <div class="kis-grid kis-grid-2">
+          <div class="kis-form-group"><label for="student_type">Type d'élève</label><select id="student_type" name="student_type" class="kis-select"><option value="regulier" {% if selected_student_type == 'regulier' %}selected{% endif %}>Régulier</option><option value="cl" {% if selected_student_type == 'cl' %}selected{% endif %}>Candidat libre</option></select></div>
+        </div>
+        <div class="kis-form-group" style="margin-top:12px">
+          <label for="classe">Classe</label>
+          <div style="display:flex;gap:10px;align-items:center">
+            <select id="classe" name="classe" class="kis-select" style="flex:1">
+              <option value="">— Classe à définir dans cette inscription —</option>
+              {% for c in classes %}<option value="{{ c.id }}" {% if selected_class == c.id|stringformat:'s' %}selected{% endif %}>{{ c.display_name }}</option>{% endfor %}
+            </select>
+            <button type="button" class="kis-btn" data-modal-url="{% url 'classe_modal' %}" data-modal-title="Nouvelle classe">+ Nouvelle classe</button>
+          </div>
+          <small class="kis-form-help">Le niveau et le parcours sont déterminés automatiquement par la classe choisie. Si la classe n'existe pas, créez-la ici sans quitter le parcours.</small>
+        </div>
+        <div class="kis-alert kis-alert-secondary" style="margin-top:14px">Année scolaire active : <strong>{{ school_year.name }}</strong>. Aucun choix d'année n'est demandé.</div>
+      </div>
+    </section>
+
+    <section class="kis-card" style="margin-bottom:18px">
+      <div class="kis-card-header"><strong>Pièces du dossier <span class="kis-text-muted" style="font-weight:normal">(facultatif)</span></strong></div>
+      <div class="kis-card-body">
+        <p class="kis-text-muted" style="margin-top:0">Acte de naissance, certificat de vaccination… Fichiers PDF ou photos. Vous pourrez en ajouter plus tard depuis la fiche de l'élève.</p>
+        <div id="piece-rows">
+        {% for i in piece_slots %}<div class="kis-form-grid kis-form-grid-2 piece-row" style="margin-bottom:8px{% if not forloop.first %};display:none{% endif %}">
+          <div class="kis-form-group" style="margin:0"><select class="kis-input" name="piece_type_{{ i }}">{% for p in student_pieces %}<option value="{{ p }}"{% if forloop.counter0 == i %} selected{% endif %}>{{ p }}</option>{% endfor %}<option value="">Autre (préciser)…</option></select><input class="kis-input piece-other" name="piece_title_{{ i }}" placeholder="Nom du document" style="display:none;margin-top:6px"></div>
+          <div class="kis-form-group" style="margin:0"><input type="file" name="piece_file_{{ i }}" accept=".pdf,image/*"></div>
+        </div>{% endfor %}
+        </div>
+        <button type="button" class="kis-btn kis-btn-sm" id="piece-add">+ Ajouter une pièce</button>
+      </div>
+    </section>
+
+    <section class="kis-card" style="margin-bottom:18px">
+      <div class="kis-card-header"><strong>4. Frais et options</strong></div>
+      <div class="kis-card-body">
+        <div class="kis-alert kis-alert-info">Les frais d'inscription et de scolarité sont appliqués automatiquement selon le secteur de la classe. Les options, si l'établissement en a configuré, restent au choix et sont facturées séparément.</div>
+        <div id="enrollment-fees"
+             hx-get="{% url 'enrollment_fees' %}"
+             hx-trigger="change from:#classe"
+             hx-target="#enrollment-fees"
+             hx-swap="innerHTML"
+             hx-include="#classe">
+          {% include "administration/students/_enrollment_fees.html" %}
+        </div>
+      </div>
+    </section>
+
+    <section class="kis-card" style="margin-bottom:18px">
+      <div class="kis-card-header"><strong>5. Récapitulatif financier</strong></div>
+      <div class="kis-card-body">
+        <div class="kis-grid kis-grid-3">
+          <div><span class="kis-text-muted">Frais obligatoires</span><strong id="enrollment-required-total" data-recap-target style="display:block;font-size:1.2rem">0</strong></div>
+          <div><span class="kis-text-muted">Options sélectionnées</span><strong id="enrollment-options-total" data-recap-target style="display:block;font-size:1.2rem">0</strong></div>
+          <div><span class="kis-text-muted">Total brut</span><strong id="enrollment-grand-total" data-recap-target style="display:block;font-size:1.35rem">0</strong></div>
+        </div>
+        <div class="kis-card" style="margin-top:16px;padding:14px">
+          <strong>Remise (facultative)</strong>
+          <p class="kis-text-muted" style="margin:6px 0 12px">Une remise peut être accordée pour une campagne commerciale, un partenariat ou un cas social. Elle est enregistrée avec son motif et déduite du montant facturé.</p>
+          <div class="kis-grid kis-grid-3">
+            <div class="kis-form-group"><label for="discount_type">Type</label><select id="discount_type" name="discount_type" class="kis-select"><option value="fixed">Montant fixe</option><option value="percentage">Pourcentage</option></select></div>
+            <div class="kis-form-group"><label for="discount_value">Valeur</label><input id="discount_value" name="discount_value" class="kis-input" type="number" min="0" step="0.01" placeholder="0"></div>
+            <div class="kis-form-group"><label for="discount_reason">Motif</label><input id="discount_reason" name="discount_reason" class="kis-input" maxlength="150" placeholder="Ex. Cas social / campagne rentrée"></div>
+          </div>
+          <div class="kis-form-group" style="margin-top:10px"><label for="discount_note">Observation <span class="kis-text-muted">(facultatif)</span></label><textarea id="discount_note" name="discount_note" class="kis-input" rows="2" placeholder="Précision utile pour la traçabilité"></textarea></div>
+        </div>
+        <div class="kis-grid kis-grid-2" style="margin-top:14px">
+          <div><span class="kis-text-muted">Remise</span><strong id="enrollment-discount-total" style="display:block;font-size:1.2rem">-0</strong></div>
+          <div><span class="kis-text-muted">Net à payer</span><strong id="enrollment-net-total" style="display:block;font-size:1.45rem">0</strong></div>
+        </div>
+        <div class="kis-card" style="margin-top:16px;padding:14px">
+          <strong>Paiement à l'inscription (facultatif)</strong>
+          <p class="kis-text-muted" style="margin:6px 0 12px">Cochez tout ce que le parent règle aujourd'hui : inscription, une tranche de scolarité, une option… Indiquez le montant de chacun. <strong>Un seul reçu</strong> sera édité.</p>
+          <table class="kis-table" id="payment-lines-table">
+            <thead><tr><th style="width:36px"></th><th>Frais</th><th>Montant dû</th><th>Montant versé</th></tr></thead>
+            <tbody id="payment-lines"><tr><td colspan="4" class="kis-text-muted">Choisissez d'abord la classe.</td></tr></tbody>
+          </table>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px">
+            <div class="kis-form-group" style="flex:1;min-width:240px;margin:0"><label for="payment_comment">Commentaire <span class="kis-text-muted">(facultatif)</span></label><input id="payment_comment" name="payment_comment" class="kis-input" maxlength="500" placeholder="Ex. inscription + 1er trimestre"></div>
+            <div style="font-size:17px">Encaissé aujourd'hui : <strong id="payment-lines-total">0</strong></div>
+          </div>
+        </div>
+        <p class="kis-text-muted" style="margin:12px 0 0">Les frais obligatoires seront facturés automatiquement à l'enregistrement. La remise, si renseignée, est appliquée avant le paiement. Le paiement initial reste facultatif.</p>
+      </div>
+    </section>
+
+    <div class="kis-page-actions" style="display:flex;justify-content:flex-end;gap:10px">
+      <a class="kis-btn" href="{% url 'dashboard' %}">Annuler</a>
+      <button class="kis-btn kis-btn-primary" type="submit">Valider l'inscription</button>
+      {% if "finance.collect" in kis_perms %}<button class="kis-btn" type="submit" name="then_pay" value="1" title="Inscription, options, tranche de scolarité… et frères et sœurs : un seul reçu">Valider puis encaisser plusieurs frais</button>{% endif %}
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  const rows = Array.from(document.querySelectorAll('.piece-row'));
+  const add = document.getElementById('piece-add');
+  if (add) add.addEventListener('click', function () {
+    const next = rows.find(function (r) { return r.style.display === 'none'; });
+    if (next) next.style.display = '';
+    if (!rows.some(function (r) { return r.style.display === 'none'; })) add.style.display = 'none';
+  });
+  rows.forEach(function (r) {
+    const sel = r.querySelector('select'), other = r.querySelector('.piece-other');
+    sel.addEventListener('change', function () { other.style.display = sel.value ? 'none' : ''; });
+  });
+})();
+</script>
+<script>
+// Matricule proposé : AA + sigle + n° d'ordre + genre (ex. 22IQRA1M). Tant que
+// l'utilisateur ne le modifie pas lui-même, il suit l'année et le sexe saisis.
+(function(){
+  const sigle = {{ matricule_sigle_json|safe }}, next = {{ matricule_next_json|safe }};
+  const mat = document.getElementById('id_matricule');
+  const year = document.getElementById('id_recruitment_year');
+  const sex = document.getElementById('id_sex');
+  if(!mat || !year || !sex) return;
+  let auto = !mat.value;
+  mat.addEventListener('input', function(){ auto = !mat.value; });
+  function propose(){
+    if(!auto) return;
+    const y = parseInt(year.value, 10), s = sex.value;
+    if(y > 1979 && (s === 'M' || s === 'F')){ mat.value = String(y % 100).padStart(2, '0') + sigle + next + s; }
+    else { mat.value = ''; }
+  }
+  year.addEventListener('input', propose); sex.addEventListener('change', propose);
+  propose();
+})();
+</script>
+<script>
+(function(){
+  const currency='{{ school_year.school.currency }}';
+  const form=document.getElementById('enrollment-form');
+  const feesBox=document.getElementById('enrollment-fees');
+
+  function fmt(n){ return new Intl.NumberFormat('fr-FR').format(Math.max(0, Math.round(n)))+' '+currency; }
+
+  function getFees(){
+    const required=[...document.querySelectorAll('#enrollment-fees [data-required-amount]')].map(e=>{
+      let components=[];
+      try{ components=e.dataset.components?JSON.parse(e.dataset.components):[]; }catch(err){ components=[]; }
+      return {id:e.dataset.feeId, name:e.dataset.feeName || 'Frais', amount:Number(e.dataset.requiredAmount||e.dataset.feeAmount||0), components};
+    });
+    const optional=[...document.querySelectorAll('#enrollment-fees input[name="optional_fees"]:checked')].map(e=>{
+      const qtyEl=document.querySelector('#enrollment-fees [data-qty-for="'+e.dataset.feeId+'"]');
+      const priceEl=document.querySelector('#enrollment-fees [data-price-for="'+e.dataset.feeId+'"]');
+      let amount=Number(e.dataset.feeAmount||0);
+      if(qtyEl && priceEl){
+        const qty=Math.max(1, parseInt(qtyEl.value||'1',10)||1);
+        const price=Number(String(priceEl.value||'').replace(/[\s\u00a0\u202f]/g,''))||0;
+        amount=qty*price;
+      }
+      return {id:e.dataset.feeId, name:e.dataset.feeName || 'Option', amount};
+    });
+    return {required, optional};
+  }
+
+  function getDiscount(gross){
+    const type=document.getElementById('discount_type');
+    const value=Number(document.getElementById('discount_value')?.value||0);
+    if(type?.value==='percentage'){
+      return Math.round(gross*Math.min(Math.max(value,0),100)/100);
+    }
+    return Math.min(Math.max(Math.round(value),0),gross);
+  }
+
+  function getInvoiceRemainders(){
+    const {required, optional}=getFees();
+    const fees=required.concat(optional);
+    const gross=fees.reduce((sum,f)=>sum+f.amount,0);
+    let discount=getDiscount(gross);
+    return fees.map(f=>{
+      const applied=Math.min(f.amount, discount);
+      discount-=applied;
+      return {...f, remainder:Math.max(0,f.amount-applied)};
+    }).filter(f=>f.remainder>0);
+  }
+
+  function paymentLinesTotal(){
+    let sum=0;
+    document.querySelectorAll('#payment-lines input[name="pay_fee"]').forEach(function(cb){
+      if(!cb.checked) return;
+      const input=document.querySelector('#payment-lines input[name="pay_amount_'+cb.value+'"]');
+      const v=parseInt((input?.value||'').replace(/[\s\u00a0]/g,''),10);
+      if(!isNaN(v)) sum+=v;
+    });
+    const el=document.getElementById('payment-lines-total');
+    if(el) el.textContent=fmt(sum);
+  }
+
+  function syncPaymentChoices(){
+    const body=document.getElementById('payment-lines');
+    if(!body) return;
+    const previous={};
+    body.querySelectorAll('input[name="pay_fee"]').forEach(function(cb){
+      const input=body.querySelector('input[name="pay_amount_'+cb.value+'"]');
+      previous[cb.value]={checked:cb.checked, amount:input?input.value:'', lines:{}};
+      body.querySelectorAll('input[name="pay_line_'+cb.value+'"]').forEach(function(lc){
+        const li=body.querySelector('input[name="pay_line_amount_'+cb.value+'_'+lc.value+'"]');
+        previous[cb.value].lines[lc.value]={checked:lc.checked, amount:li?li.value:''};
+      });
+    });
+    const fees=getInvoiceRemainders();
+    body.innerHTML='';
+    if(!fees.length){
+      body.innerHTML='<tr><td colspan="4" class="kis-text-muted">Aucun frais à régler pour le moment.</td></tr>';
+    }
+    fees.forEach(function(f){
+      const prev=previous[String(f.id)];
+      const tr=document.createElement('tr');
+      tr.innerHTML='<td><input type="checkbox" name="pay_fee" value="'+f.id+'"></td>'+
+        '<td>'+f.name.replace(/</g,'&lt;')+'</td>'+
+        '<td>'+fmt(f.remainder)+'</td>'+
+        '<td><input class="kis-input" type="text" inputmode="numeric" style="width:130px" name="pay_amount_'+f.id+'" data-max="'+f.remainder+'"></td>';
+      const cb=tr.querySelector('input[name="pay_fee"]');
+      const input=tr.querySelector('input[name^="pay_amount_"]');
+      cb.checked=!!(prev&&prev.checked);
+      input.value=prev&&prev.amount?prev.amount:String(f.remainder);
+      cb.addEventListener('change',paymentLinesTotal);
+      input.addEventListener('input',function(){
+        const v=parseInt((input.value||'').replace(/[\s\u00a0]/g,''),10);
+        if(!isNaN(v)&&v>f.remainder) input.value=String(f.remainder);
+        cb.checked=true; paymentLinesTotal();
+      });
+      body.appendChild(tr);
+      // Frais détaillé en postes (inscription, manuel, uniformes…) : le parent
+      // choisit les postes réglés ; le montant du frais est leur somme.
+      const comps=(f.components||[]).map(c=>({name:c.name, amount:Number(c.amount)||0}));
+      if(comps.length){
+        let cut=Math.max(0,f.amount-f.remainder);   // la remise réduit d'abord le premier poste
+        comps.forEach(function(c){ const d=Math.min(cut,c.amount); c.amount-=d; cut-=d; });
+        input.readOnly=true; input.title='Somme des postes cochés ci-dessous';
+        const subs=[];
+        comps.forEach(function(c,idx){
+          if(c.amount<=0) return;
+          const lp=prev&&prev.lines?prev.lines[String(idx)]:null;
+          const sub=document.createElement('tr');
+          sub.className='kis-subline';
+          sub.innerHTML='<td></td><td style="padding-left:28px"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" name="pay_line_'+f.id+'" value="'+idx+'"> '+c.name.replace(/</g,'&lt;')+'</label></td>'+
+            '<td>'+fmt(c.amount)+'</td>'+
+            '<td><input class="kis-input" type="text" inputmode="numeric" style="width:110px" name="pay_line_amount_'+f.id+'_'+idx+'"></td>';
+          const lc=sub.querySelector('input[type=checkbox]');
+          const li=sub.querySelector('input[type=text]');
+          lc.checked=lp?lp.checked:true;
+          li.value=lp&&lp.amount?lp.amount:String(c.amount);
+          function sumLines(){
+            let total=0;
+            subs.forEach(function(s){ if(s.cb.checked){ const v=parseInt((s.input.value||'').replace(/[\s\u00a0]/g,''),10); if(!isNaN(v)) total+=v; } });
+            input.value=String(total);
+            cb.checked=total>0;
+            paymentLinesTotal();
+          }
+          lc.addEventListener('change',sumLines);
+          li.addEventListener('input',function(){
+            const v=parseInt((li.value||'').replace(/[\s\u00a0]/g,''),10);
+            if(!isNaN(v)&&v>c.amount) li.value=String(c.amount);
+            lc.checked=true; sumLines();
+          });
+          subs.push({cb:lc, input:li, sum:sumLines});
+          body.appendChild(sub);
+        });
+        if(subs.length){
+          const wasChecked=cb.checked;
+          subs[0].sum();
+          cb.checked=wasChecked;
+          cb.addEventListener('change',function(){ if(cb.checked && !parseInt(input.value||'0',10)){ subs.forEach(function(s){ s.cb.checked=true; }); subs[0].sum(); } });
+        }
+      }
+    });
+    paymentLinesTotal();
+  }
+
+  function recalc(){
+    const {required, optional}=getFees();
+    const requiredTotal=required.reduce((sum,f)=>sum+f.amount,0);
+    const optionalTotal=optional.reduce((sum,f)=>sum+f.amount,0);
+    const gross=requiredTotal+optionalTotal;
+
+    const type=document.getElementById('discount_type');
+    const value=Number(document.getElementById('discount_value')?.value||0);
+    let discount=0;
+    if(type?.value==='percentage'){
+      discount=Math.round(gross*Math.min(Math.max(value,0),100)/100);
+    }else{
+      discount=Math.min(Math.max(Math.round(value),0),gross);
+    }
+    const net=Math.max(0,gross-discount);
+
+    const requiredEl=document.getElementById('enrollment-required-total');
+    const optionsEl=document.getElementById('enrollment-options-total');
+    const grossEl=document.getElementById('enrollment-grand-total');
+    const discountEl=document.getElementById('enrollment-discount-total');
+    const netEl=document.getElementById('enrollment-net-total');
+    if(requiredEl) requiredEl.textContent=fmt(requiredTotal);
+    if(optionsEl) optionsEl.textContent='+'+fmt(optionalTotal);
+    if(grossEl) grossEl.textContent=fmt(gross);
+    if(discountEl) discountEl.textContent='-'+fmt(discount);
+    if(netEl) netEl.textContent=fmt(net);
+  }
+
+  function refreshFinanceUI(){
+    syncPaymentChoices();
+    recalc();
+  }
+
+  document.addEventListener('change',function(e){
+    if(e.target.matches('input[name="optional_fees"]') || e.target.matches('#discount_type') || e.target.matches('[data-qty-for],[data-price-for]')) refreshFinanceUI();
+  });
+  document.addEventListener('input',function(e){
+    if(e.target.matches('#discount_value')) refreshFinanceUI();
+    if(e.target.matches('[data-qty-for],[data-price-for]')){
+      const id=e.target.dataset.qtyFor||e.target.dataset.priceFor;
+      const box=document.querySelector('#enrollment-fees input[name="optional_fees"][value="'+id+'"]');
+      if(box) box.checked=true;
+      refreshFinanceUI();
+    }
+  });
+  document.addEventListener('htmx:afterSwap',function(e){
+    if(e.target && e.target.id==='enrollment-fees') refreshFinanceUI();
+  });
+  document.addEventListener('htmx:afterSettle',function(e){
+    if(e.target && e.target.id==='enrollment-fees') refreshFinanceUI();
+  });
+
+  if(feesBox){
+    new MutationObserver(refreshFinanceUI).observe(feesBox,{childList:true,subtree:true});
+  }
+
+  refreshFinanceUI();
+})();
+</script>
+{% endblock %}

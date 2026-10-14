@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Listes par option — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div><h1>Listes par option</h1><p>Élèves inscrits à la cantine, au transport, à l'uniforme… et, pour un frais détaillé, par poste (manuel, uniformes…). À consulter ou imprimer.</p></div>
+    {% if fee %}<div style="display:flex;gap:8px;flex-wrap:wrap"><a class="kis-btn kis-btn-primary" target="_blank" href="{% url 'option_list_pdf' %}?{{ request.GET.urlencode }}">Imprimer la liste</a>{% if show_money %}<a class="kis-btn" target="_blank" href="{% url 'option_list_pdf' %}?{{ request.GET.urlencode }}&montants=0">Liste d'émargement (sans montants)</a>{% endif %}</div>{% endif %}
+  </div>
+  <div class="kis-card" style="margin-bottom:16px"><div class="kis-card-body">
+    <form method="get" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+      {% if school_years|length > 1 %}<div class="kis-form-group" style="margin:0"><label>Année</label><select class="kis-input" name="year" onchange="this.form.submit()">{% for y in school_years %}<option value="{{ y.id }}" {% if school_year and y.id == school_year.id %}selected{% endif %}>{{ y.name }}</option>{% endfor %}</select></div>{% endif %}
+      <div class="kis-form-group" style="margin:0"><label>Option</label><select class="kis-input" name="option" onchange="this.form.submit()"><option value="">— Choisir —</option>{% if options %}<optgroup label="Options">{% for o in options %}<option value="{{ o.id }}" {% if fee and not is_poste and o.id == fee.id %}selected{% endif %}>{{ o.name }} ({{ o.nb }})</option>{% endfor %}</optgroup>{% endif %}{% if postes %}<optgroup label="Postes des frais détaillés">{% for p in postes %}<option value="{{ p.id }}" {% if is_poste and p.id == fee.id %}selected{% endif %}>{{ p.name }} ({{ p.nb }})</option>{% endfor %}</optgroup>{% endif %}</select></div>
+      <div class="kis-form-group" style="margin:0"><label>Classe</label><select class="kis-input" name="classe" onchange="this.form.submit()"><option value="">Toutes les classes</option>{% for c in classes %}<option value="{{ c.id }}" {% if classe and c.id == classe.id %}selected{% endif %}>{{ c.display_name }}</option>{% endfor %}</select></div>
+      {% if show_money %}<div class="kis-form-group" style="margin:0"><label>Paiement</label><select class="kis-input" name="statut" onchange="this.form.submit()"><option value="">Tous</option><option value="solde" {% if status == "solde" %}selected{% endif %}>Soldés</option><option value="du" {% if status == "du" %}selected{% endif %}>Restant dû</option><option value="partiel" {% if status == "partiel" %}selected{% endif %}>Payé en partie</option><option value="rien" {% if status == "rien" %}selected{% endif %}>Rien payé</option></select></div>{% endif %}
+    </form>
+  </div></div>
+  {% if not options and not postes %}
+    <div class="kis-empty-state"><strong>Aucune option configurée pour cette année.</strong></div>
+  {% elif not fee %}
+    {% if options %}<h3 style="margin:4px 0 8px">Options</h3><div class="kis-grid kis-grid-3" style="margin-bottom:16px">{% for o in options %}<a class="kis-card" style="padding:16px;text-decoration:none" href="?{% if school_year %}year={{ school_year.id }}&{% endif %}option={{ o.id }}"><strong>{{ o.name }}</strong><br><span class="kis-text-muted">{{ o.nb }} élève(s)</span></a>{% endfor %}</div>{% endif %}
+    {% if postes %}<h3 style="margin:4px 0 8px">Postes des frais détaillés</h3><div class="kis-grid kis-grid-3">{% for p in postes %}<a class="kis-card" style="padding:16px;text-decoration:none" href="?{% if school_year %}year={{ school_year.id }}&{% endif %}option={{ p.id }}"><strong>{{ p.component.name }}</strong><br><span class="kis-text-muted">{{ p.fee_name }} · {{ p.nb }} élève(s)</span></a>{% endfor %}</div>{% endif %}
+  {% else %}
+  {% if is_poste %}<div class="kis-alert kis-alert-info" style="margin-bottom:12px">Poste « {{ fee.component.name }} » du frais {{ fee.fee_name }} : les montants sont ceux de ce poste uniquement.{% if to_ventilate %} <strong>{{ to_ventilate }} versement(s) restent à ventiler</strong> pour ce frais : tant qu'ils ne le sont pas, ces élèves apparaissent comme n'ayant rien payé sur le poste. <a href="{% url 'fee_components' fee.component.fee_type_id %}">Ventiler</a>{% endif %}</div>{% endif %}
+  <div class="kis-card"><div class="kis-card-body">
+    <table class="kis-table"><thead><tr><th>N°</th><th>Élève</th><th>Classe</th>{% if fee.allows_quantity %}<th>Quantité</th><th>Prix unitaire</th>{% endif %}{% if show_money %}<th>Montant</th><th>Payé</th><th>Reste</th>{% endif %}</tr></thead><tbody>
+    {% for r in rows %}<tr><td>{{ forloop.counter }}</td><td><a href="{% url 'student_detail' r.student.id %}">{{ r.student.last_name }} {{ r.student.first_name }}</a></td><td>{{ r.classe.display_name }}</td>{% if fee.allows_quantity %}<td>{{ r.quantity }}</td><td>{{ r.price|floatformat:"0g" }}</td>{% endif %}{% if show_money %}<td>{{ r.amount|floatformat:"0g" }}</td><td>{{ r.paid|floatformat:"0g" }}</td><td><strong>{{ r.reste|floatformat:"0g" }}</strong></td>{% endif %}</tr>
+    {% empty %}<tr><td colspan="8">Aucun élève pour ces critères.</td></tr>{% endfor %}
+    </tbody>{% if rows %}<tfoot><tr><th></th><th>{{ totals.count }} élève(s)</th><th></th>{% if fee.allows_quantity %}<th>{{ totals.quantity }}</th><th></th>{% endif %}{% if show_money %}<th>{{ totals.total|floatformat:"0g" }}</th><th>{{ totals.paid|floatformat:"0g" }}</th><th>{{ totals.rest|floatformat:"0g" }}</th>{% endif %}</tr></tfoot>{% endif %}</table>
+  </div></div>
+  {% endif %}
+</div>
+{% endblock %}

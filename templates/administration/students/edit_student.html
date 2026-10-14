@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Modifier un élève — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div><h1>Modifier les informations de l'élève</h1><p>{{ student.first_name }} {{ student.last_name }} · toutes les informations administratives peuvent être corrigées.</p></div>
+    
+  </div>
+  <div class="kis-card"><div class="kis-card-body">
+    <div class="kis-alert kis-alert-info" style="margin-bottom:16px">Corrigez ici les informations saisies à l'inscription ou lors d'un import Excel. Le sexe peut notamment être renseigné après un import incomplet.</div>
+    <form method="post" enctype="multipart/form-data">{% csrf_token %}
+      {% if form.non_field_errors %}<div class="kis-alert kis-alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="kis-grid kis-grid-2">
+      {% for f in form %}<div class="kis-form-group"><label>{{ f.label }}</label>{{ f }}{% if f.help_text %}<small class="text-muted">{{ f.help_text }}</small>{% endif %}{% for e in f.errors %}<small class="kis-text-danger">{{ e }}</small>{% endfor %}</div>{% endfor %}
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px"><a class="kis-btn" href="{% url 'student_detail' student.id %}">Annuler</a><button class="kis-btn kis-btn-primary" type="submit">Enregistrer les modifications</button></div>
+    </form>
+  </div></div>
+</div>
+{% endblock %}

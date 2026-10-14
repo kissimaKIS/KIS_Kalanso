@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Ventilation — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header"><div>
+    <h1>Ventiler un versement</h1>
+    <p class="kis-subtitle">{{ invoice.enrollment.student }} · {{ invoice.enrollment.classe.display_name }} · {{ invoice.label }}</p>
+  </div></div>
+  <div class="kis-alert kis-alert-info" style="margin-bottom:14px">
+    {{ available|floatformat:"0g" }} {{ currency }} ont été versés avant le détail du frais en postes. Indiquez à quels postes correspond cet argent.
+    Les versements et leurs reçus ne changent pas.
+  </div>
+  {% for e in errors %}<div class="kis-alert kis-alert-danger" style="margin-bottom:10px">{{ e }}</div>{% endfor %}
+  {% if available %}
+  <form method="post" class="kis-card"><div class="kis-card-body">{% csrf_token %}
+    <table class="kis-table"><thead><tr><th>Poste</th><th>Montant</th><th>Déjà ventilé</th><th>Reste</th><th style="width:170px">Part de l'argent reçu</th></tr></thead><tbody>
+    {% for line in lines %}<tr>
+      <td>{{ line.name }}</td><td>{{ line.amount|floatformat:"0g" }}</td><td>{{ line.paid_amount|floatformat:"0g" }}</td><td>{{ line.reste|floatformat:"0g" }}</td>
+      <td><input class="kis-input vent-amount" name="line_{{ line.id }}" inputmode="numeric" value="{{ line.value|default_if_none:'' }}" data-proposal="{{ line.proposal|floatformat:'0' }}" data-max="{{ line.reste|floatformat:'0' }}"></td>
+    </tr>{% endfor %}
+    </tbody></table>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px">
+      <div>Réparti : <strong id="vent-total">0</strong> / {{ available|floatformat:"0g" }} {{ currency }} <button class="kis-btn kis-btn-sm" type="button" id="vent-propose">Proposer dans l'ordre</button></div>
+      <button class="kis-btn kis-btn-primary" type="submit">Enregistrer la ventilation</button>
+    </div>
+  </div></form>
+  {% else %}
+  <p>Rien à ventiler pour cette facture.</p>
+  {% endif %}
+  {% if payments %}
+  <h3 style="margin:18px 0 8px">Versements reçus</h3>
+  <table class="kis-table"><thead><tr><th>Date</th><th>N° reçu</th><th>Montant</th></tr></thead><tbody>
+  {% for p in payments %}<tr><td>{{ p.date|date:"d/m/Y" }}</td><td>{% if p.is_carryover %}Reprise{% else %}{{ p.receipt_number }}{% endif %}</td><td>{{ p.amount|floatformat:"0g" }}</td></tr>{% endfor %}
+  </tbody></table>
+  {% endif %}
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+  const inputs = Array.from(document.querySelectorAll('.vent-amount'));
+  const out = document.getElementById('vent-total');
+  function num(v) { const n = parseInt((v || '').replace(/[\s  ]/g, ''), 10); return isNaN(n) ? 0 : n; }
+  function refresh() { let t = 0; inputs.forEach(function (i) { t += num(i.value); }); if (out) out.textContent = t.toLocaleString('fr-FR'); }
+  inputs.forEach(function (i) { i.addEventListener('input', function () { if (num(i.value) > num(i.dataset.max)) i.value = i.dataset.max; refresh(); }); });
+  const btn = document.getElementById('vent-propose');
+  if (btn) btn.addEventListener('click', function () { inputs.forEach(function (i) { i.value = i.dataset.proposal || ''; }); refresh(); });
+  refresh();
+})();
+</script>
+{% endblock %}

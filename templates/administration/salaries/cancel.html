@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Annuler des paiements de salaire — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header"><div><h1>Annuler des paiements de salaire</h1><p class="kis-subtitle">{{ conf.label|capfirst }} · {{ school_year.name }}. Cochez les paiements saisis par erreur : ils seront retirés, et le détail restera dans le journal des corrections.</p></div></div>
+  {% if error %}<div class="kis-alert kis-alert-danger">{{ error }}</div>{% endif %}
+  <div class="kis-card" style="margin-bottom:12px"><div class="kis-card-body">
+    <form method="get" style="display:flex;gap:8px"><input class="kis-input" name="q" value="{{ q }}" placeholder="Nom, matricule ou période (ex. Juin)"><button class="kis-btn" type="submit">Filtrer</button></form>
+  </div></div>
+  <form method="post" class="kis-card"><div class="kis-card-body">{% csrf_token %}<input type="hidden" name="q" value="{{ q }}">
+    <table class="kis-table"><thead><tr><th style="width:36px"><input type="checkbox" id="all" title="Tout cocher"></th><th>Personne</th><th>Période</th><th>Montant</th><th>Payé le</th><th>Observation</th></tr></thead><tbody>
+    {% for p in payments %}<tr><td><input type="checkbox" name="payment" value="{{ p.id }}" class="line" {% if p.id|stringformat:"s" in chosen %}checked{% endif %}></td>
+      <td>{% if p.teacher %}{{ p.teacher.full_name }}{% else %}{{ p.personnel.first_name }} {{ p.personnel.last_name }}{% endif %}</td><td>{{ p.period }}</td><td>{{ p.amount|floatformat:"0g" }}</td><td>{{ p.paid_at|date:"d/m/Y" }}</td><td>{{ p.note|default:"—" }}</td></tr>
+    {% empty %}<tr><td colspan="6">Aucun paiement.</td></tr>{% endfor %}
+    </tbody></table>
+    <div class="kis-form-group" style="margin-top:12px"><label for="reason">Motif (obligatoire)</label><input class="kis-input" id="reason" name="reason" required minlength="3" value="{{ reason }}" placeholder="Ex. salaires de toute l'année saisis par erreur"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><strong id="count">0 paiement coché</strong><button class="kis-btn kis-btn-danger" type="submit">Annuler les paiements cochés</button></div>
+  </div></form>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function(){
+  const lines=[...document.querySelectorAll('.line')], all=document.getElementById('all'), count=document.getElementById('count');
+  function refresh(){ const n=lines.filter(l=>l.checked).length; count.textContent=n+' paiement'+(n>1?'s':'')+' coché'+(n>1?'s':''); }
+  lines.forEach(l=>l.addEventListener('change',refresh));
+  if(all) all.addEventListener('change',()=>{ lines.forEach(l=>l.checked=all.checked); refresh(); });
+  refresh();
+})();
+</script>
+{% endblock %}

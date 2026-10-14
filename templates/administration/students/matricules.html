@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Matricules automatiques — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header"><div><h1>Matricules automatiques</h1>
+    <p class="kis-subtitle">Format : année de recrutement (2 chiffres) + sigle <strong>{{ sigle }}</strong> + numéro d'ordre continu sur toute l'école + genre (M/F). Exemple : <strong>{{ example }}</strong>.</p></div></div>
+
+  {% if incomplete %}
+  <form method="post" class="kis-card" style="margin-bottom:16px"><div class="kis-card-body">{% csrf_token %}<input type="hidden" name="action" value="complete">
+    <h3 style="margin-top:0">1. Compléter {{ incomplete|length }} fiche(s)</h3>
+    <p class="kis-text-muted">Ces élèves n'ont pas d'année de recrutement ou pas de sexe : le matricule ne peut pas être calculé. L'année proposée est celle de leur première inscription.</p>
+    <table class="kis-table"><thead><tr><th>Élève</th><th>Matricule actuel</th><th>Année de recrutement</th><th>Sexe</th></tr></thead><tbody>
+    {% for item in incomplete %}{% with s=item.student %}<tr>
+      <td><a href="{% url 'student_detail' s.id %}" target="_blank">{{ s.last_name }} {{ s.first_name }}</a></td><td>{{ s.matricule|default:"—" }}</td>
+      <td><input class="kis-input" style="width:110px" type="number" min="1980" max="{{ max_year|add:1 }}" name="year_{{ s.id }}" value="{{ s.recruitment_year|default:item.proposed_year|default:'' }}"></td>
+      <td><select class="kis-input" name="sex_{{ s.id }}"><option value="">—</option><option value="M" {% if s.sex == "M" %}selected{% endif %}>Garçon (M)</option><option value="F" {% if s.sex == "F" %}selected{% endif %}>Fille (F)</option></select></td>
+    </tr>{% endwith %}{% endfor %}
+    </tbody></table>
+    <button class="kis-btn kis-btn-primary" type="submit" style="margin-top:12px">Enregistrer et continuer</button>
+  </div></form>
+  {% endif %}
+
+  <div class="kis-card"><div class="kis-card-body">
+    <h3 style="margin-top:0">{% if incomplete %}2. {% endif %}Aperçu : {{ rows|length }} élève(s), {{ changed }} matricule(s) modifié(s)</h3>
+    <p class="kis-text-muted">Vérifiez l'<strong>année de recrutement</strong> de chaque élève : par défaut, c'est l'année de sa première inscription dans KIS, ce qui est faux pour les élèves arrivés avant. Corrigez-la ici puis enregistrez : l'aperçu se met à jour. Ensuite, tous les matricules sont remplacés, dans l'ordre d'arrivée (année de recrutement puis date d'inscription) ; l'opération est inscrite au journal des corrections.</p>
+    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="complete">
+    <table class="kis-table"><thead><tr><th>Élève</th><th>Année de recrutement</th><th>Sexe</th><th>Matricule actuel</th><th>Nouveau matricule</th></tr></thead><tbody>
+    {% for r in rows %}<tr><td>{{ r.student.last_name }} {{ r.student.first_name }}</td>
+      <td><input class="kis-input" style="width:100px;padding:4px 8px" type="number" min="1980" max="{{ max_year|add:1 }}" name="year_{{ r.student.id }}" value="{{ r.student.recruitment_year }}"></td>
+      <td>{{ r.student.get_sex_display }}</td><td>{{ r.old|default:"—" }}</td><td><strong>{{ r.new }}</strong></td></tr>{% empty %}<tr><td colspan="5">Aucun élève.</td></tr>{% endfor %}
+    </tbody></table>
+    {% if rows %}<button class="kis-btn" type="submit" style="margin-top:10px">Enregistrer les années et recalculer l'aperçu</button>{% endif %}
+    </form>
+    <div style="margin-top:16px">
+    {% if not incomplete %}
+    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="generate">
+      <button class="kis-btn kis-btn-primary" type="submit">Remplacer tous les matricules</button></form>
+    {% else %}<div class="kis-alert kis-alert-warning" style="margin:0">Complétez d'abord les fiches de l'étape 1 pour pouvoir générer les matricules.</div>{% endif %}
+    </div>
+  </div></div>
+</div>
+{% endblock %}

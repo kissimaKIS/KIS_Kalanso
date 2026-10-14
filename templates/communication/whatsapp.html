@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Envoi WhatsApp — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header"><div><h1>Envoyer par WhatsApp</h1><p>{{ announcement.title }} · {{ announcement.get_audience_display }}</p></div></div>
+  <div class="kis-grid kis-grid-2" style="margin-bottom:16px;align-items:start">
+    <div class="kis-card"><div class="kis-card-header"><strong>Message</strong></div><div class="kis-card-body"><pre style="white-space:pre-wrap;font-family:inherit;margin:0">{{ text }}</pre></div></div>
+    <div class="kis-alert kis-alert-info" style="margin:0">Cliquez sur « WhatsApp » pour chaque destinataire : WhatsApp s'ouvre avec le message déjà écrit, appuyez sur « Envoyer », puis revenez ici pour le suivant. Les boutons déjà utilisés passent en vert clair.<br><br>Il faut WhatsApp sur ce poste (application WhatsApp ou WhatsApp Web) et une connexion Internet au moment de l'envoi.</div>
+  </div>
+  {% if classes %}<form method="get" style="margin-bottom:12px;display:flex;gap:8px;align-items:flex-end"><div class="kis-form-group" style="margin:0"><label>Classe</label><select class="kis-input" name="classe" onchange="this.form.submit()"><option value="">Toutes les familles</option>{% for c in classes %}<option value="{{ c.id }}" {% if classe and c.id == classe.id %}selected{% endif %}>{{ c.display_name }}</option>{% endfor %}</select></div></form>{% endif %}
+  <div class="kis-card"><div class="kis-card-body">
+    <p class="kis-text-muted" style="margin-top:0">{{ rows|length }} destinataire(s){% if without_phone %}, dont {{ without_phone }} sans numéro utilisable (à compléter sur la fiche){% endif %}.</p>
+    <table class="kis-table"><thead><tr><th>{% if staff_audience %}Personnel{% else %}Famille{% endif %}</th>{% if not staff_audience %}<th>Enfants</th>{% endif %}<th>Téléphone</th><th></th></tr></thead><tbody>
+    {% for r in rows %}<tr><td><strong>{{ r.label }}</strong></td>{% if not staff_audience %}<td class="kis-text-muted">{{ r.detail }}</td>{% endif %}<td>{{ r.phone|default:"—" }}</td>
+      <td>{% if r.url %}<a class="kis-btn kis-btn-sm kis-btn-whatsapp" data-wa href="{{ r.url }}" target="_blank" rel="noopener">WhatsApp</a>{% else %}<span class="kis-text-muted">Pas de numéro</span>{% endif %}</td></tr>
+    {% empty %}<tr><td colspan="4">Aucun destinataire.</td></tr>{% endfor %}
+    </tbody></table>
+  </div></div>
+</div>
+{% endblock %}

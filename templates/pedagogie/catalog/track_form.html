@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Modifier le référentiel — {{ track.name }}{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header"><div><h1>Modifier</h1><p>{{ track.name }}</p></div></div>
+  <div class="kis-card"><div class="kis-card-body">
+    <form method="post">{% csrf_token %}
+      {% for f in form %}<div class="kis-form-group{% if f.errors %} kis-form-group-error{% endif %}"><label class="kis-label" for="{{ f.id_for_label }}">{{ f.label }}{% if f.field.required %} *{% endif %}</label>{{ f }}{% for e in f.errors %}<small class="kis-text-danger">{{ e }}</small>{% endfor %}</div>{% endfor %}
+      {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
+      <button class="kis-btn kis-btn-primary" type="submit">Enregistrer</button>
+      
+    </form>
+  </div></div>
+</div>
+{% endblock %}

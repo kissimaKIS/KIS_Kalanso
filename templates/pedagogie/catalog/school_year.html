@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Référentiel pédagogique — {{ school_year.name }}{% endblock %}
+{% block content %}
+<div class="kis-page">
+    <div class="kis-page-header">
+        <div>
+            <h1>Référentiel pédagogique</h1>
+            <p>{{ school_year.name }} — {{ school_year.school.name }}</p>
+            <p class="kis-text-muted">
+                Sélectionnez les formations que l'établissement souhaite ouvrir pour cette année.
+            </p>
+        </div>
+        <div class="kis-page-header-actions">
+            <span class="kis-badge kis-badge-success">{{ levels_count }} niveau(x) ouvert(s)</span>
+            <span class="kis-badge">{{ tracks_count }} formation(s) ouverte(s)</span>
+            {% if school_year.catalog_is_validated %}
+                <span class="kis-badge kis-badge-success">✓ Configuration validée</span>
+            {% else %}
+                <span class="kis-badge">🟠 À vérifier</span>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if form.non_field_errors %}
+        <div class="kis-alert kis-alert-danger">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+        </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        {% for sector in sector_groups %}
+        <section class="kis-card" style="margin-bottom:18px">
+            <div class="kis-card-header">
+                <div>
+                    <h2 style="margin:0">{{ sector.label }}</h2>
+                    
+                </div>
+            </div>
+            <div class="kis-card-body">
+                {% if sector.code == 'high_school' or sector.code == 'vocational' %}
+                    {% for group in sector.track_groups %}
+                        <h3 style="margin-top:{% if forloop.first %}0{% else %}22px{% endif %}">{{ group.domain }}</h3>
+                        <div class="kis-grid kis-grid-3">
+                        {% for row in group.tracks %}
+                          <label class="kis-card" style="padding:14px; cursor:pointer">
+                            <input type="checkbox" name="tracks" value="{{ row.track.id }}" {% if row.is_active %}checked{% endif %}>
+                            <strong>{{ row.track.name }}</strong>
+                            {% if row.track.domain %}<div class="kis-text-muted">{{ row.track.domain }}</div>{% endif %}
+                            <div style="margin-top:6px"><a class="kis-btn kis-btn-sm" href="{% url 'track_edit' row.track.id %}?next={% url 'school_year_catalog' school_year.id %}">Modifier</a></div>
+                            <div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:6px">
+                              {% for track_level in row.track.levels.all %}
+                                {% if track_level.is_active %}<a class="kis-btn kis-btn-sm" href="{% url 'track_subjects' track_level.id %}">{{ track_level.education_level.name }}</a>{% endif %}
+                              {% endfor %}
+                            </div>
+                          </label>
+                        {% endfor %}
+                        </div>
+                    {% empty %}<p class="kis-text-muted">Aucune formation disponible.</p>{% endfor %}
+                {% else %}
+                    <h3>Niveaux</h3>
+                    <div class="kis-grid kis-grid-3">
+                        {% for row in sector.levels %}
+                        <label class="kis-card" style="padding:14px; cursor:pointer">
+                            <input type="checkbox" name="levels" value="{{ row.education_level.id }}" {% if row.is_active %}checked{% endif %}>
+                            <strong>{{ row.education_level.name }}</strong>
+                            {% if row.education_level.is_exam_level %}<div class="kis-text-muted">Examen : {{ row.education_level.exam_name }}</div>{% endif %}
+                            <div style="margin-top:8px"><a class="kis-btn kis-btn-sm" href="{% url 'level_subjects' row.education_level.id %}">Vérifier les matières</a></div>
+                        </label>
+                        {% empty %}
+                        <p class="kis-text-muted">Aucun niveau disponible.</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+        {% endfor %}
+
+        <div class="kis-page-actions" style="display:flex; gap:10px; justify-content:flex-end">
+            <a class="kis-btn" href="{% url 'school_year_list' %}">Annuler</a>
+            {% if school_year.catalog_is_validated %}
+                <button class="kis-btn kis-btn-primary" type="submit">✓ Enregistrer les modifications et revalider</button>
+            {% else %}
+                <button class="kis-btn kis-btn-primary" type="submit">✓ Vérifier et valider la configuration</button>
+            {% endif %}
+        </div>
+    </form>
+
+    <div class="kis-card" style="margin-top:18px; border-left:4px solid var(--kis-primary, #2563eb)">
+        <div class="kis-card-body">
+            {% if school_year.catalog_is_validated %}
+                <strong>Configuration validée</strong>
+                <p class="kis-text-muted" style="margin:6px 0">La configuration pédagogique de cette année a été vérifiée et validée. Vous pouvez encore la modifier ; toute modification nécessite ensuite une nouvelle validation.</p>
+                <p class="kis-text-muted" style="margin:6px 0">Dernière validation : {{ school_year.catalog_validated_at|date:"d/m/Y à H:i" }}{% if school_year.catalog_validated_by %} par {{ school_year.catalog_validated_by.get_full_name|default:school_year.catalog_validated_by.username }}{% endif %}.</p>
+            {% else %}
+                <strong>Avant validation</strong>
+                <p class="kis-text-muted" style="margin:6px 0">Vérifiez les formations, matières, coefficients, volumes horaires et options, puis modifiez-les si nécessaire.</p>
+                <p class="kis-text-muted" style="margin:6px 0">Utilisez le bouton « Vérifier et valider la configuration » ci-dessus pour enregistrer vos choix et les valider.</p>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

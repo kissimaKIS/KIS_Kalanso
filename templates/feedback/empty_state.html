@@ -1,0 +1,33 @@
+<div class="kis-empty-state">
+
+    <div class="kis-empty-icon">
+
+        <i data-lucide="{{ icon|default:'folder-open' }}"></i>
+
+    </div>
+
+    <h3 class="kis-empty-title">
+
+        {{ title }}
+
+    </h3>
+
+    <p class="kis-empty-text">
+
+        {{ message }}
+
+    </p>
+
+    {% if button_text %}
+
+        <a href="{{ button_url }}" class="kis-btn kis-btn-primary">
+
+            <i data-lucide="plus"></i>
+
+            {{ button_text }}
+
+        </a>
+
+    {% endif %}
+
+</div>

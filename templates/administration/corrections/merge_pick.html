@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Fusionner une fiche — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header"><div><h1>Fusionner avec une autre fiche</h1><p>{{ student.last_name }} {{ student.first_name }} — choisissez la fiche en double.</p></div></div>
+  <div class="kis-card"><div class="kis-card-body">
+    <form method="get" style="display:flex;gap:8px;margin-bottom:12px"><input class="kis-input" type="search" name="q" value="{{ q }}" placeholder="Nom, prénom, matricule ou téléphone"><button class="kis-btn" type="submit">Rechercher</button></form>
+    {% if not q %}<p class="kis-text-muted">Fiches au nom proche :</p>{% endif %}
+    <table class="kis-table"><thead><tr><th>Élève</th><th>Matricule</th><th>Naissance</th><th>Indices communs</th><th></th></tr></thead><tbody>
+    {% for s, clues in results %}<tr><td>{{ s.last_name }} {{ s.first_name }}</td><td>{{ s.matricule|default:"—" }}</td><td>{{ s.date_of_birth|date:"d/m/Y"|default:"—" }}</td><td>{% for c in clues %}<span class="kis-badge kis-badge-success">{{ c }}</span> {% empty %}—{% endfor %}</td>
+      <td><a class="kis-btn kis-btn-sm" href="{% url 'student_merge' student.id s.id %}">Fusionner</a></td></tr>
+    {% empty %}<tr><td colspan="5">Aucune fiche trouvée.</td></tr>{% endfor %}
+    </tbody></table>
+  </div></div>
+</div>
+{% endblock %}

@@ -1,0 +1,62 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# =========================
+# Virtual environment
+# =========================
+venv/
+.venv/
+env/
+
+# =========================
+# PyInstaller
+# =========================
+build/
+dist/
+
+# =========================
+# Données / fichiers générés
+# =========================
+exports/
+*.db
+*.sqlite
+*.sqlite3
+
+# =========================
+# Dossiers et fichiers perso
+# =========================
+Type document a ajouter fondamentale/
+Rapport_partiel_test/
+mobile_app/
+requirements.txt
+FeedbacksV4.txt
+KIS_Kalanso_Checklist_Complet_Test_MVP_Alpha.pdf
+
+# =========================
+# Fichiers temporaires
+# =========================
+*.log
+*.tmp
+*.bak
+
+# =========================
+# IDE
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# Secrets / configuration locale
+# =========================
+.env
+.env.*
+
+# =========================
+# PyInstaller spec files
+# =========================
+*.spec

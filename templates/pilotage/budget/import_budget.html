@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Importer le budget — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header"><div><h1>Importer le budget depuis Excel</h1><p>Année active : {{ year.name }}</p></div></div>
+  <div class="kis-card"><div class="kis-card-body">
+    <p class="text-muted">
+      Le fichier doit être au format <strong>Excel (.xlsx)</strong>. Les colonnes ci-dessous sont reconnues ;
+      <strong>Libellé</strong>, <strong>Type</strong> et <strong>Montant</strong> sont obligatoires.
+      Chaque ligne du fichier devient une opération budgétaire distincte — pratique pour reprendre un
+      tableau Excel de recettes et dépenses déjà tenu par l'établissement.
+    </p>
+    <p class="kis-text-muted" style="margin-top:6px">ℹ️ Réimporter le même fichier, ou une version complétée, n'ajoute que les nouvelles opérations : rien n'est dupliqué.</p>
+    <div class="table-responsive"><table class="kis-table"><thead><tr><th>Colonne Excel</th><th>Correspondance KIS</th><th>Obligatoire</th></tr></thead><tbody>
+      <tr><td>Date</td><td>Date de l'opération</td><td>Non (date du jour par défaut)</td></tr>
+      <tr><td>Libellé</td><td>Libellé</td><td>Oui</td></tr>
+      <tr><td>Catégorie</td><td>Catégorie budgétaire (créée automatiquement si nouvelle)</td><td>Non</td></tr>
+      <tr><td>Type</td><td>Recette ou Dépense</td><td>Oui</td></tr>
+      <tr><td>Montant</td><td>Montant</td><td>Oui</td></tr>
+      <tr><td>Observation</td><td>Observation</td><td>Non</td></tr>
+    </tbody></table></div>
+    <form method="post" enctype="multipart/form-data">{% csrf_token %}<div class="kis-form-group"><label class="kis-label">Fichier Excel (.xlsx)</label><input type="file" name="file" accept=".xlsx" required></div><button class="kis-btn kis-btn-primary" type="submit">Importer</button></form>
+  </div></div>
+</div>
+{% endblock %}

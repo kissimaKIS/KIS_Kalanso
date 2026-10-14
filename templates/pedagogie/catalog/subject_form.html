@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header"><div><h1>{{ title }}</h1><p>{{ context_label }}</p></div></div>
+  <div class="kis-card"><div class="kis-card-body">
+    <form method="post">
+      {% csrf_token %}{% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
+      {% if form.non_field_errors %}<div class="kis-alert kis-alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="kis-grid kis-grid-3">
+        {% for f in form %}<div class="kis-form-group"><label>{{ f.label }}</label>{{ f }}{% if f.help_text %}<small class="kis-text-muted">{{ f.help_text }}</small>{% endif %}{{ f.errors }}</div>{% endfor %}
+      </div>
+      <button class="kis-btn kis-btn-primary" type="submit">Enregistrer</button>
+      {% if back_url %}<a class="kis-btn" href="{% url back_url back_pk %}">Annuler</a>{% elif next_url %}<a class="kis-btn" href="{{ next_url }}">Annuler</a>{% endif %}
+    </form>
+  </div></div>
+</div>
+{% endblock %}

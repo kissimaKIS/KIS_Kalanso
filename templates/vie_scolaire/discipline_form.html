@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block content %}<div class="kis-page"><h1>Discipline — {{ enrollment.student }}</h1><form method="post" class="kis-card"><div class="kis-card-body">{% csrf_token %}{{ form.as_p }}<button class="kis-btn kis-btn-primary">Enregistrer</button></div></form></div>{% endblock %}

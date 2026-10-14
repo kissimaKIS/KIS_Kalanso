@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Fiche de notes — {{ link.display_name }} — {{ classe.display_name }}</title>
+<style>
+@page { size: A4 portrait; margin: 12mm; }
+body { font-family: Arial, sans-serif; font-size: 12px; color: #111; }
+h1 { font-size: 20px; margin: 0 0 6px; }
+p { margin: 3px 0; }
+table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+th, td { border: 1px solid #222; padding: 7px 6px; }
+th { text-align: center; }
+.no-print { margin-bottom: 16px; }
+@media print { .no-print { display:none; } }
+</style>
+</head>
+<body>
+<div class="no-print"><button onclick="window.print()">Imprimer</button></div>
+<h1>Fiche de collecte des notes</h1>
+<p><strong>Établissement :</strong> {{ classe.school.name }}</p>
+<p><strong>Année scolaire :</strong> {{ classe.school_year.name }} &nbsp; | &nbsp; <strong>Classe :</strong> {{ classe.display_name }} &nbsp; | &nbsp; <strong>Période :</strong> {{ term.name }}{% if evaluation %} &nbsp; | &nbsp; <strong>Évaluation :</strong> {{ evaluation.name }} &nbsp; | &nbsp; <strong>Date :</strong> {{ evaluation.date|date:"d/m/Y" }}{% endif %}</p>
+<p><strong>Matière :</strong> {{ link.display_name }} &nbsp; | &nbsp; <strong>Coefficient :</strong> {{ link.coefficient }}</p>
+<table>
+<thead><tr><th style="width:40px">N°</th><th>Prénom</th><th>Nom</th><th style="width:110px">N° matricule</th>{% if mode == 'F1' %}<th>Composition /10</th>{% else %}<th>Moyenne de classe A /20</th><th>Composition B /20</th>{% endif %}<th>Observation</th></tr></thead>
+<tbody>
+{% for enrollment in enrollments %}<tr><td>{{ forloop.counter }}</td><td>{{ enrollment.student.first_name }}</td><td>{{ enrollment.student.last_name }}</td><td>{{ enrollment.student.matricule }}</td>{% if mode == 'F1' %}<td style="height:24px"></td>{% else %}<td></td><td></td>{% endif %}<td></td></tr>{% empty %}<tr><td colspan="99">Aucun élève inscrit.</td></tr>{% endfor %}
+</tbody>
+</table>
+</body>
+</html>

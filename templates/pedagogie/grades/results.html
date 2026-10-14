@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load l10n %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div>
+      <h1>Notes du bulletin — {{ classe.display_name }}</h1>
+      <p>{{ term.name }} — une matière à la fois</p>
+    </div>
+    
+  </div>
+
+  {% if lock %}
+  <div class="kis-alert kis-alert-danger" style="margin-bottom:16px">
+    🔒 <strong>Bulletins verrouillés</strong> depuis le {{ lock.locked_at|date:"d/m/Y" }} : les notes de {{ term.name }} sont en lecture seule.{% if "pedagogy.manage" in kis_perms %} Pour corriger une note, déverrouillez d'abord depuis la page <a href="{% url 'class_bulletins' classe.id term.id %}">Bulletins</a>.{% endif %}
+  </div>
+  {% endif %}
+  <div class="kis-card" style="margin-bottom:16px">
+    <div class="kis-card-body">
+      {% if links|length > 1 %}
+      <div class="kis-tabs" role="tablist" aria-label="Matières de la classe">
+        {% for link in links %}
+          <a role="tab" class="kis-tab {% if selected_link and link.id == selected_link.id %}kis-tab-active{% endif %}" href="{% url 'class_results' classe.id term.id %}?{% if bulletin_configured %}item={{ link.id }}{% else %}subject={{ link.subject.id }}{% endif %}">{{ link.display_name }}</a>
+        {% empty %}<span>Aucune matière active pour cette classe.</span>{% endfor %}
+      </div>
+      {% elif not links %}
+        <span>Aucune matière active pour cette classe.</span>
+      {% endif %}
+      <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        {% if bulletin_configured %}
+          {% if selected_link.subject_id %}
+            <label for="print_subject"><strong>Fiche vierge</strong></label>
+            <select id="print_subject" class="kis-select" style="max-width:360px" onchange="if(this.value) window.open(this.value, '_blank')">
+              <option value="">Choisir une matière…</option>
+              {% for link in links %}{% if link.subject_id %}<option value="{% url 'grade_sheet_print' classe.id term.id link.subject.id %}" {% if selected_link and link.id == selected_link.id %}selected{% endif %}>{{ link.display_name }}</option>{% endif %}{% endfor %}
+            </select>
+          {% endif %}
+        {% else %}
+          <label for="print_subject"><strong>Fiche vierge</strong></label>
+          <select id="print_subject" class="kis-select" style="max-width:360px" onchange="if(this.value) window.open(this.value, '_blank')">
+            <option value="">Choisir une matière…</option>
+            {% for link in links %}<option value="{% url 'grade_sheet_print' classe.id term.id link.subject.id %}" {% if selected_link and link.subject_id == selected_link.subject_id %}selected{% endif %}>{{ link.display_name }}</option>{% endfor %}
+          </select>
+        {% endif %}
+        {% if "pedagogy.manage" in kis_perms %}<a class="kis-btn kis-btn-sm" href="{% url 'bulletin_config' classe.id %}">Paramétrer le bulletin</a>{% endif %}{% if "bulletins.print" in kis_perms %}<a class="kis-btn kis-btn-sm" href="{% url 'class_bulletins' classe.id term.id %}">Bulletins</a>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% if selected_link %}
+  <form method="post">
+    {% csrf_token %}{% if bulletin_configured %}<input type="hidden" name="item_id" value="{{ selected_link.id }}">{% else %}<input type="hidden" name="subject_id" value="{{ selected_link.subject.id }}">{% endif %}<fieldset style="border:0;padding:0;margin:0;min-width:0"{% if lock %} disabled{% endif %}>
+    <div class="kis-card" style="overflow-x:auto"><div class="kis-card-body">
+      <h2 style="margin-top:0">{{ selected_link.display_name }} <small>— Coef. {{ selected_link.coefficient }}</small></h2>
+      <table class="kis-table">
+        <thead><tr><th>N°</th><th>Élève</th>{% if is_custom and mode == 'F1' %}<th>Note finale /{{ selected_link.max_score|unlocalize }}</th>{% elif is_custom %}<th>Moyenne de classe A /{{ selected_link.max_score|unlocalize }}</th><th>Composition B /{{ selected_link.max_score|unlocalize }}</th>{% elif mode == 'F1' %}<th>Composition /10</th>{% else %}<th>Moyenne de classe A /20</th><th>Composition B /20</th>{% endif %}</tr></thead>
+        <tbody>
+        {% for row in rows %}
+        <tr>
+          <td>{{ forloop.counter }}</td><td><strong>{{ row.enrollment.student.first_name }} {{ row.enrollment.student.last_name }}</strong></td>
+          {% if is_custom and mode == 'F1' %}
+          <td><input type="number" inputmode="decimal" step="0.01" min="0" max="{{ selected_link.max_score|unlocalize }}" name="note_{{ row.enrollment.id }}_{{ selected_link.id }}" value="{% if row.result %}{{ row.result.note|default_if_none:''|unlocalize }}{% endif %}" style="width:100px"></td>
+          {% elif is_custom %}
+          <td><input type="number" inputmode="decimal" step="0.01" min="0" max="{{ selected_link.max_score|unlocalize }}" name="class_average_{{ row.enrollment.id }}_{{ selected_link.id }}" value="{% if row.result %}{{ row.result.class_average|default_if_none:''|unlocalize }}{% endif %}" style="width:100px"></td>
+          <td><input type="number" inputmode="decimal" step="0.01" min="0" max="{{ selected_link.max_score|unlocalize }}" name="composition_{{ row.enrollment.id }}_{{ selected_link.id }}" value="{% if row.result %}{{ row.result.composition|default_if_none:''|unlocalize }}{% endif %}" style="width:100px"></td>
+          {% elif mode == 'F1' %}
+          <td><input type="number" inputmode="decimal" step="0.01" min="0" max="10" name="composition_{{ row.enrollment.id }}_{{ selected_link.subject.id }}" value="{% if row.grade %}{{ row.grade.composition|default_if_none:''|unlocalize }}{% endif %}" style="width:100px"></td>
+          {% else %}
+          <td><input type="number" inputmode="decimal" step="0.01" min="0" max="20" name="class_average_{{ row.enrollment.id }}_{{ selected_link.subject.id }}" value="{% if row.grade %}{{ row.grade.class_average|default_if_none:''|unlocalize }}{% endif %}" style="width:100px"></td>
+          <td><input type="number" inputmode="decimal" step="0.01" min="0" max="20" name="composition_{{ row.enrollment.id }}_{{ selected_link.subject.id }}" value="{% if row.grade %}{{ row.grade.composition|default_if_none:''|unlocalize }}{% endif %}" style="width:100px"></td>
+          {% endif %}
+        </tr>
+        {% empty %}<tr><td colspan="5">Aucun élève inscrit dans cette classe.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+      {% if not lock %}<button class="kis-btn kis-btn-primary" style="margin-top:16px" type="submit">Enregistrer les notes</button>{% endif %}
+    </div></div>
+  </fieldset>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

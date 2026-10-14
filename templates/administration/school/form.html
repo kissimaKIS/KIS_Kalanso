@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} — KIS Kalanso{% endblock %}
+
+{% block content %}
+<div class="kis-bootstrap-page">
+    <header class="kis-bootstrap-header">
+        <div class="kis-bootstrap-brand">
+            <div class="kis-bootstrap-logo" aria-hidden="true">
+                <img src="{% static 'images/logo.png' %}" alt="">
+            </div>
+            <div>
+                <div class="kis-eyebrow">KIS KALANSO</div>
+                <h1>{{ title }}</h1>
+                {% if school %}<p>Modifiez les informations et les secteurs d’enseignement de l’établissement.</p>{% else %}<p>Configurez les informations essentielles de votre établissement pour commencer.</p>{% endif %}
+            </div>
+        </div>
+
+        <div class="kis-bootstrap-step" aria-label="Étape 1 sur 1">
+            <span class="kis-step-badge">1</span>
+            <div>
+                {% if school %}<strong>Paramètres de l’établissement</strong>
+                <small>Configuration actuelle</small>{% else %}<strong>Configuration initiale</strong>
+                <small>Informations de l’établissement</small>{% endif %}
+            </div>
+        </div>
+    </header>
+
+    {% if school and configuration %}
+    <section class="kis-bootstrap-card kis-config-summary">
+        <div class="kis-bootstrap-card-header">
+            <div>
+                <h2>État de la configuration</h2>
+                <p>Les éléments indispensables sont signalés ici sans rendre les options obligatoires.</p>
+            </div>
+        </div>
+        <div class="kis-form-grid kis-form-grid-2">
+            {% for item in configuration.items %}
+            <div class="kis-form-group">
+                <strong>{% if item.complete %}✓{% else %}○{% endif %} {{ item.label }}</strong>
+                {% if item.optional %}<small class="kis-form-help">Optionnel — {{ item.help }}</small>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <section class="kis-bootstrap-card">
+        {% if school %}
+        <div class="kis-bootstrap-card-header">
+            <div>
+                <h2>Périmètre de la licence</h2>
+                <p>Le périmètre choisi lors de l'installation reste lié à la licence et ne peut pas être modifié ici.</p>
+            </div>
+        </div>
+        <div class="kis-form-grid kis-form-grid-2" style="margin-bottom:1rem">
+            <div class="kis-form-group">
+                <label class="kis-label">Niveau de licence</label>
+                <div class="kis-input" aria-readonly="true">{{ school.get_license_level_display|default:"Non défini" }}</div>
+            </div>
+            <div class="kis-form-group">
+                <label class="kis-label">Secteurs activés</label>
+                <div class="kis-input" aria-readonly="true">
+                    {% for school_type in school.enabled_school_types %}{% if not forloop.first %}, {% endif %}{{ school_type }}{% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="kis-bootstrap-card-header">
+            <div>
+                <h2>Identité de l'établissement</h2>
+                <p>Ces informations seront utilisées dans les tableaux de bord, documents et bulletins.</p>
+            </div>
+            <span class="kis-required-note"><span>*</span> Champ obligatoire</span>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="kis-alert kis-alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <div class="kis-form-grid kis-form-grid-2">
+                {% for field in form %}{% if not field.name|slice:"0:16" == "honor_threshold_" %}
+                    <div class="kis-form-group{% if field.name == 'address' or field.name == 'motto' or field.name == 'logo' %} kis-form-span-2{% endif %}{% if field.errors %} kis-form-group-error{% endif %}">
+                        <label class="kis-label" for="{{ field.id_for_label }}">
+                            {{ field.label }}{% if field.field.required %}<span class="kis-required"> *</span>{% endif %}
+                        </label>
+
+                        {% if field.name == 'logo' %}
+                            {% if school and school.logo %}
+                            <div style="margin-bottom:0.75rem"><img src="{{ school.logo.url }}" alt="Logo actuel" style="max-height:90px;max-width:220px;object-fit:contain"></div>
+                            {% endif %}
+                            <div class="kis-file-box">
+                                <div class="kis-file-icon" aria-hidden="true">↑</div>
+                                <div class="kis-file-content">
+                                    <strong>Logo de l'établissement</strong>
+                                    <span>PNG, JPG ou WEBP · choisissez une image claire et lisible</span>
+                                    {{ field }}
+                                </div>
+                            </div>
+                        {% else %}
+                            {{ field }}
+                        {% endif %}
+
+                        {% if field.help_text %}
+                            <small class="kis-form-help">{{ field.help_text }}</small>
+                        {% endif %}
+                        {% for error in field.errors %}
+                            <small class="kis-text-danger">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="kis-bootstrap-card">
+            <div class="kis-bootstrap-card-header">
+                <div>
+                    <h2>Tableau d’honneur</h2>
+                    <p>Chaque secteur conserve son propre barème et son propre seuil. Aucun seuil n’est converti.</p>
+                </div>
+            </div>
+            <div class="kis-form-grid kis-form-grid-2">
+                {% for field in form %}
+                    {% if field.name|slice:"0:16" == "honor_threshold_" %}
+                    <div class="kis-form-group{% if field.errors %} kis-form-group-error{% endif %}">
+                        <label class="kis-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="kis-required"> *</span>{% endif %}</label>
+                        {{ field }}
+                        {% if field.help_text %}<small class="kis-form-help">{{ field.help_text }}</small>{% endif %}
+                        {% for error in field.errors %}<small class="kis-text-danger">{{ error }}</small>{% endfor %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="kis-bootstrap-actions">
+                <div class="kis-form-actions-note">
+                    <span class="kis-info-dot">i</span>
+                    {% if school %}
+                        Les secteurs activés pilotent les niveaux, classes, matières et statistiques disponibles.
+                    {% else %}
+                        Vous pourrez ajuster cette configuration depuis les paramètres.
+                    {% endif %}
+                </div>
+                <button class="kis-btn kis-btn-primary kis-btn-lg" type="submit">
+                    {% if school %}Enregistrer les modifications{% else %}Enregistrer et continuer{% endif %}
+                    <span aria-hidden="true">{% if school %}✓{% else %}→{% endif %}</span>
+                </button>
+            </div>
+        </form>
+    </section>
+</div>
+{% endblock %}

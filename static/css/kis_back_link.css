@@ -1,0 +1,26 @@
+.kis-back-link{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    margin:0 0 18px 0;
+    padding:7px 11px;
+    border:1px solid var(--kis-border);
+    border-radius:var(--kis-radius);
+    background:var(--kis-surface);
+    color:var(--kis-text-muted);
+    text-decoration:none;
+    font-size:.9rem;
+    font-weight:500;
+    transition:var(--kis-transition);
+}
+
+.kis-back-link svg{
+    width:17px;
+    height:17px;
+}
+
+.kis-back-link:hover{
+    color:var(--kis-primary);
+    border-color:var(--kis-primary);
+    background:var(--kis-bg);
+}

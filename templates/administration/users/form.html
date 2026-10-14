@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div><h1>{{ page_title|default:"Utilisateur" }}</h1><p>Création manuelle et gestion des rôles.</p></div>
+  </div>
+  <form method="post" class="kis-card">
+    <div class="kis-card-body">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button class="kis-btn kis-btn-primary" type="submit">Enregistrer</button>
+      <a class="kis-btn" href="{% url 'user_list' %}">Annuler</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

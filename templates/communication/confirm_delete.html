@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block content %}<div class="kis-card"><div class="kis-card-body"><h1>Supprimer ?</h1><p>{{ object.title }}</p><form method="post">{% csrf_token %}<button class="kis-btn kis-btn-danger">Confirmer</button></form></div></div>{% endblock %}

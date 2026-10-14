@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header"><div><h1>Importer des élèves depuis Excel</h1><p>Classe : {{ classe.display_name }}</p></div></div>
+  <div class="kis-card"><div class="kis-card-body">
+    <p class="text-muted">Le fichier doit être au format <strong>Excel (.xlsx)</strong>. Les colonnes ci-dessous sont reconnues ; <strong>Prénom</strong> et <strong>Nom</strong> sont obligatoires.</p>
+    <p class="kis-text-muted" style="margin-top:6px">ℹ️ Réimporter un fichier, même complété depuis, ne crée pas de doublon : un élève déjà enregistré est reconnu par son matricule, ou par son nom avec un téléphone, un parent ou une date de naissance en commun. Ses cases vides sont complétées. En cas de doute (homonymes, nom écrit autrement, informations différentes), KIS vous demande de choisir avant d'enregistrer.</p>
+    <div class="table-responsive"><table class="kis-table"><thead><tr><th>Colonne Excel</th><th>Correspondance KIS</th><th>Obligatoire</th></tr></thead><tbody>
+      <tr><td>Prénom</td><td>Prénom</td><td>Oui</td></tr><tr><td>Nom</td><td>Nom</td><td>Oui</td></tr><tr><td>Sexe</td><td>Sexe (M/G/Masculin/Garçon ou F/Fille/Féminin)</td><td>Non</td></tr><tr><td>Matricule</td><td>Matricule</td><td>Non</td></tr><tr><td>DateNaissance</td><td>Date de naissance</td><td>Non</td></tr><tr><td>Lieu</td><td>Lieu de naissance</td><td>Non</td></tr><tr><td>Père</td><td>Nom du père</td><td>Non</td></tr><tr><td>Mère</td><td>Nom de la mère</td><td>Non</td></tr><tr><td>TelPère</td><td>Téléphone père</td><td>Non</td></tr><tr><td>TelMère</td><td>Téléphone mère</td><td>Non</td></tr><tr><td>WhatsApp</td><td>WhatsApp</td><td>Non</td></tr>
+    </tbody></table></div>
+    <form method="post" enctype="multipart/form-data">{% csrf_token %}<div class="kis-form-group"><label class="kis-label">Fichier Excel (.xlsx)</label><input type="file" name="file" accept=".xlsx" required></div><button class="kis-btn kis-btn-primary" type="submit">Importer</button></form>
+  </div></div>
+</div>
+{% endblock %}

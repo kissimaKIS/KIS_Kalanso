@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Fichier de notes — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div>
+      <a class="kis-btn" href="{% url 'mobile_home' %}">← Saisie mobile</a>
+      <h1>Notes — {{ submission.package.holder }}</h1>
+      <p>{{ submission.package.term.name }} — {{ submission.package.term.school_year.name }} · reçu le {{ submission.imported_at|date:"d/m/Y à H:i" }}{% if submission.filename %} · {{ submission.filename }}{% endif %}</p>
+    </div>
+    {% if report and not report.errors %}
+    <div style="display:flex;gap:8px">
+      <form method="post" action="{% url 'mobile_submission_cancel' submission.id %}">{% csrf_token %}<button class="kis-btn" type="submit">Abandonner</button></form>
+      {% if report.to_apply %}
+      <form method="post" action="{% url 'mobile_submission_apply' submission.id %}" onsubmit="return confirm('Enregistrer {{ report.to_apply }} note(s) ?');">{% csrf_token %}<button class="kis-btn kis-btn-primary" type="submit">Enregistrer {{ report.to_apply }} note(s)</button></form>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+  {% if submission.status != 'PENDING' %}
+    <div class="kis-card"><div class="kis-card-body">
+      Ce dépôt est <strong>{{ submission.get_status_display|lower }}</strong>{% if submission.applied_at %} le {{ submission.applied_at|date:"d/m/Y à H:i" }} ({{ submission.applied_count }} note(s) enregistrée(s)){% endif %}.
+    </div></div>
+  {% else %}
+    {% for e in report.errors %}<div class="kis-alert kis-alert-danger" style="margin-bottom:12px">{{ e }}</div>{% endfor %}
+    {% if not report.errors %}
+      <div class="kis-card" style="margin-bottom:16px"><div class="kis-card-body">
+        <strong>{{ report.to_apply }}</strong> note(s) à enregistrer.
+        {% if report.line_errors %}<span style="color:#b42318"> {{ report.line_errors }} ligne(s) refusée(s) : elles seront ignorées, corrigez-les sur le téléphone et renvoyez le fichier si besoin.</span>{% endif %}
+        Les élèves sans note dans le fichier gardent leurs notes actuelles.
+      </div></div>
+    {% endif %}
+    {% for sheet in report.sheets %}
+      <div class="kis-card" style="margin-bottom:16px">
+        <div class="kis-card-header"><strong>{{ sheet.title }}</strong>
+          {% if not sheet.error %}<span class="kis-text-muted" style="margin-left:8px;font-size:13px">{{ sheet.counts.new }} nouvelle(s) · {{ sheet.counts.changed }} modifiée(s) · {{ sheet.counts.same }} inchangée(s) · {{ sheet.counts.empty }} vide(s){% if sheet.counts.error %} · <span style="color:#b42318">{{ sheet.counts.error }} refusée(s)</span>{% endif %}</span>{% endif %}
+        </div>
+        <div class="kis-card-body">
+          {% if sheet.error %}
+            <div class="kis-alert kis-alert-danger">{{ sheet.error }}</div>
+          {% else %}
+          <table class="kis-table">
+            {% with single=sheet.plan.single %}
+            <thead><tr><th>Élève</th><th>Actuel{% if not single %} (A / B){% endif %}</th><th>Reçu{% if not single %} (A / B){% endif %}</th><th>Résultat</th></tr></thead>
+            <tbody>
+            {% for row in sheet.rows %}{% if row.status != 'empty' or row.message %}
+              <tr{% if row.status == 'error' %} style="background:rgba(180,35,24,.06)"{% endif %}>
+                <td>{{ row.student }}</td>
+                <td>{{ row.old.0|default_if_none:"—" }}{% if not single %} / {{ row.old.1|default_if_none:"—" }}{% endif %}</td>
+                <td><strong>{{ row.new.0|default_if_none:"—" }}{% if not single %} / {{ row.new.1|default_if_none:"—" }}{% endif %}</strong></td>
+                <td>{% if row.status == 'new' %}<span class="kis-badge kis-badge-success">Nouvelle</span>{% elif row.status == 'changed' %}<span class="kis-badge kis-badge-warning">Modifiée</span>{% elif row.status == 'same' %}<span class="kis-badge">Inchangée</span>{% elif row.status == 'error' %}<span class="kis-badge kis-badge-danger">Refusée</span>{% endif %}
+                  {% if row.message %}<div class="kis-text-muted" style="font-size:12px">{{ row.message }}</div>{% endif %}</td>
+              </tr>
+            {% endif %}{% endfor %}
+            </tbody>
+            {% endwith %}
+          </table>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  {% endif %}
+</div>
+{% endblock %}

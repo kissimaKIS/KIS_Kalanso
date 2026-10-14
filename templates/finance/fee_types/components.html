@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Postes — {{ fee.name }} — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div>
+      <h1>Détail du frais : {{ fee.name }}</h1>
+      <p class="kis-subtitle">{{ fee.get_category_display }} · {{ fee.school_year.name }} · montant global : <strong>{{ fee.amount|floatformat:"0g" }} {{ currency }}</strong></p>
+    </div>
+  </div>
+  <div class="kis-alert kis-alert-info" style="margin-bottom:14px">
+    Le frais reste <strong>unique pour la famille</strong> (un seul montant, un seul reçu). Les postes servent au suivi interne :
+    à chaque versement, vous cochez les postes réglés (ex. inscription, manuel, uniformes) et KIS tient le solde de chacun.
+    Le montant du frais devient la somme des postes.
+  </div>
+  {% for e in errors %}<div class="kis-alert kis-alert-danger" style="margin-bottom:10px">{{ e }}</div>{% endfor %}
+  {% if fee.allows_quantity %}
+    <div class="kis-alert kis-alert-warning">Ce frais est à quantité variable (articles à l'unité) : il ne peut pas être détaillé en postes.</div>
+  {% else %}
+  <form method="post" class="kis-card" style="margin-bottom:16px"><div class="kis-card-body">
+    {% csrf_token %}<input type="hidden" name="rows" value="{{ rows }}">
+    <table class="kis-table"><thead><tr><th style="width:50px">Ordre</th><th>Poste</th><th style="width:180px">Montant ({{ currency }})</th><th style="width:110px">Retirer</th></tr></thead><tbody>
+    {% for c in components %}<tr>
+      <td>{{ forloop.counter }}<input type="hidden" name="id_{{ forloop.counter0 }}" value="{{ c.id }}"></td>
+      <td><input class="kis-input" name="name_{{ forloop.counter0 }}" value="{{ c.name }}" maxlength="100"></td>
+      <td><input class="kis-input comp-amount" name="amount_{{ forloop.counter0 }}" value="{{ c.amount|floatformat:'0' }}" inputmode="numeric"></td>
+      <td><label><input type="checkbox" name="delete_{{ forloop.counter0 }}" value="1"> Retirer</label></td>
+    </tr>{% endfor %}
+    {% for i in blank_rows %}<tr>
+      <td>+</td>
+      <td><input class="kis-input" name="name_{{ i }}" maxlength="100" placeholder="{% if forloop.first and not components %}Ex. Frais d'inscription{% else %}Ex. Manuel, 2 uniformes…{% endif %}"></td>
+      <td><input class="kis-input comp-amount" name="amount_{{ i }}" inputmode="numeric"></td>
+      <td></td>
+    </tr>{% endfor %}
+    </tbody></table>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px">
+      <div style="font-size:17px">Total des postes : <strong id="comp-total">0</strong> {{ currency }}</div>
+      <button class="kis-btn kis-btn-primary" type="submit" name="action" value="save">Enregistrer les postes</button>
+    </div>
+  </div></form>
+
+  <div class="kis-card" style="margin-bottom:16px"><div class="kis-card-header"><strong>Inscriptions existantes</strong></div><div class="kis-card-body">
+    <p>{{ invoice_count }} facture(s) de ce frais, dont {{ detailed_count }} déjà détaillée(s) en postes.</p>
+    <p class="kis-text-muted">Appliquer les postes aux inscriptions existantes ne modifie aucun paiement ni aucun reçu. Une facture soldée est répartie automatiquement ; une facture partiellement payée apparaît ci-dessous pour que vous indiquiez quels postes ont été réglés.</p>
+    {% if components %}
+    <form method="post">{% csrf_token %}<button class="kis-btn" type="submit" name="action" value="apply">Appliquer aux inscriptions existantes</button></form>
+    {% endif %}
+  </div></div>
+
+  <div class="kis-card"><div class="kis-card-header"><strong>Versements à ventiler ({{ to_ventilate|length }})</strong></div><div class="kis-card-body">
+    <table class="kis-table"><thead><tr><th>Élève</th><th>Classe</th><th>Payé</th><th>À ventiler</th><th></th></tr></thead><tbody>
+    {% for inv in to_ventilate %}<tr>
+      <td>{{ inv.enrollment.student }}</td><td>{{ inv.enrollment.classe.display_name }}</td>
+      <td>{{ inv.paid_amount|floatformat:"0g" }}</td><td><strong>{{ inv.to_ventilate|floatformat:"0g" }}</strong></td>
+      <td><a class="kis-btn kis-btn-sm kis-btn-primary" href="{% url 'invoice_ventilation' inv.id %}">Ventiler</a></td>
+    </tr>{% empty %}<tr><td colspan="5" class="kis-text-muted">Aucun versement en attente de ventilation.</td></tr>{% endfor %}
+    </tbody></table>
+  </div></div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+  const inputs = Array.from(document.querySelectorAll('.comp-amount'));
+  const out = document.getElementById('comp-total');
+  function refresh() {
+    let t = 0;
+    inputs.forEach(function (i) {
+      const del = i.closest('tr').querySelector('input[name^="delete_"]');
+      if (del && del.checked) return;
+      const v = parseInt((i.value || '').replace(/[\s  ]/g, ''), 10); if (!isNaN(v)) t += v;
+    });
+    if (out) out.textContent = t.toLocaleString('fr-FR');
+  }
+  document.addEventListener('input', refresh); document.addEventListener('change', refresh); refresh();
+})();
+</script>
+{% endblock %}

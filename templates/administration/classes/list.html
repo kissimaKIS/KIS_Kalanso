@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Classes — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+    <div class="kis-page-header">
+        <div>
+            <h1>Classes</h1>
+            <p>{{ school_year.name }}{% if school_year.school %} — {{ school_year.school.name }}{% endif %}</p>
+        </div>
+        <a class="kis-btn kis-btn-primary" href="{% url 'add_classe' %}" data-modal-url="{% url 'classe_modal' %}?list=1" data-modal-title="Nouvelle classe">Nouvelle classe</a>
+    </div>
+
+    {% if school_year and not school_year.catalog_is_validated %}
+        <div class="kis-alert kis-alert-secondary" style="margin-bottom:16px">
+            Le référentiel pédagogique de {{ school_year.name }} n'a pas encore été vérifié ni validé.
+            Vous pouvez créer vos classes dès maintenant, mais il est conseillé de
+            <a href="{% url 'school_year_catalog' school_year.id %}">vérifier le référentiel</a>
+            avant d'ouvrir beaucoup de classes — vous pourrez toujours le modifier ensuite.
+        </div>
+    {% endif %}
+
+    <div class="kis-grid kis-grid-3">
+        {% for c in classes %}
+        <a class="kis-card" href="{% url 'classe_detail' c.id %}">
+            <div class="kis-card-body">
+                <h3>{{ c.display_name }}</h3>
+                {% if c.pedagogical_track and c.pedagogical_track.domain %}
+                    <p class="kis-text-muted">{{ c.pedagogical_track.domain }}</p>
+                {% endif %}
+                <strong>{{ c.enrollments.count }} élève(s)</strong>
+                {% if c.education_level.is_exam_level %}
+                    <div class="kis-alert kis-alert-info" style="margin-top:10px">
+                        Examen : {{ c.education_level.exam_name }}
+                    </div>
+                {% endif %}
+            </div>
+        </a>
+        {% empty %}
+        <div class="kis-card">
+            <div class="kis-card-body">Aucune classe. Créez la première à partir du référentiel.</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

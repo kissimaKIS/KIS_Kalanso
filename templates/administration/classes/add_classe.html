@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Nouvelle classe — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+    <div class="kis-page-header">
+        <div>
+            <h1>Nouvelle classe</h1>
+            <p>Année active : {{ school_year.name }}</p>
+            <p class="kis-text-muted">
+                Choisissez uniquement une série, filière ou spécialité réelle du référentiel.
+                L'établissement ouvre ensuite uniquement les classes dont il a réellement besoin.
+            </p>
+        </div>
+    </div>
+
+    {% if school_year and not school_year.catalog_is_validated %}
+        <div class="kis-alert kis-alert-secondary" style="margin-bottom:16px">
+            Le référentiel pédagogique de cette année n'a pas encore été validé.
+            <a href="{% url 'school_year_catalog' school_year.id %}">Vérifiez-le</a> si vous n'êtes pas
+            sûr des niveaux/parcours proposés ci-dessous — sinon vous pouvez continuer directement.
+        </div>
+    {% endif %}
+
+    <div class="kis-card">
+        <div class="kis-card-body">
+            <form method="post">
+                {% csrf_token %}
+                {% for f in form %}
+                <div class="kis-form-group{% if f.errors %} kis-form-group-error{% endif %}">
+                    <label class="kis-label" for="{{ f.id_for_label }}">{{ f.label }}{% if f.field.required %} *{% endif %}</label>
+                    {{ f }}
+                    {% if f.help_text %}<small class="kis-form-help">{{ f.help_text }}</small>{% endif %}
+                    {% for error in f.errors %}<small class="kis-text-danger">{{ error }}</small>{% endfor %}
+                </div>
+                {% endfor %}
+                <button class="kis-btn kis-btn-primary" type="submit">Enregistrer</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Configuration initiale — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-bootstrap-page">
+<header class="kis-bootstrap-header"><div><div class="kis-eyebrow">KIS KALANSO</div><h1>Configuration initiale</h1><p>Préparez l'établissement avant la première utilisation.</p></div><div class="kis-bootstrap-step"><span class="kis-step-badge">1</span><div><strong>Installation</strong><small>Configuration de départ</small></div></div></header>
+<form method="post" enctype="multipart/form-data" novalidate>{% csrf_token %}
+{% if form.non_field_errors %}<div class="kis-alert kis-alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+<section class="kis-bootstrap-card"><div class="kis-bootstrap-card-header"><div><h2>Périmètre de la licence</h2><p>Ce choix détermine les secteurs accessibles. Il est verrouillé après l'installation.</p></div></div>
+<div class="kis-form-grid kis-form-grid-2">
+<div id="kis-license-level" class="kis-form-group{% if form.license_level.errors %} kis-form-group-error{% endif %}"><label class="kis-label">{{ form.license_level.label }} *</label>{{ form.license_level }}{% for error in form.license_level.errors %}<small class="kis-text-danger">{{ error }}</small>{% endfor %}</div>
+<div id="kis-secondary-choice" class="kis-form-group{% if form.secondary_choice.errors %} kis-form-group-error{% endif %}"><label class="kis-label">{{ form.secondary_choice.label }}</label>{{ form.secondary_choice }}{% for error in form.secondary_choice.errors %}<small class="kis-text-danger">{{ error }}</small>{% endfor %}<small class="kis-form-help">Uniquement pour la licence 2.</small></div>
+</div></section>
+<section class="kis-bootstrap-card"><div class="kis-bootstrap-card-header"><div><h2>Identité de l'établissement</h2><p>Ces informations seront reprises sur les documents.</p></div></div><div class="kis-form-grid kis-form-grid-2">
+{% for field in form %}{% if field.name != 'license_level' and field.name != 'secondary_choice' and field.name != 'school_year_start' and field.name != 'school_year_end' and 'threshold' not in field.name %}<div id="kis-field-{{ field.name }}" class="kis-form-group{% if field.name == 'address' or field.name == 'logo' or field.name == 'motto' %} kis-form-span-2{% endif %}"><label class="kis-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>{{ field }}{% for error in field.errors %}<small class="kis-text-danger">{{ error }}</small>{% endfor %}</div>{% endif %}{% endfor %}</div></section>
+<section class="kis-bootstrap-card"><div class="kis-bootstrap-card-header"><div><h2>Année scolaire</h2><p>L'année est créée explicitement et devient l'année active.</p></div></div><div class="kis-form-grid kis-form-grid-2">{% for field in form %}{% if field.name == 'school_year_start' or field.name == 'school_year_end' %}<div class="kis-form-group"><label class="kis-label">{{ field.label }} *</label>{{ field }}{% for error in field.errors %}<small class="kis-text-danger">{{ error }}</small>{% endfor %}</div>{% endif %}{% endfor %}</div></section>
+<section class="kis-bootstrap-card"><div class="kis-bootstrap-card-header"><div><h2>Tableau d'honneur</h2><p>Chaque secteur conserve son propre barème et son propre seuil. Aucun seuil n'est converti.</p></div></div><div class="kis-form-grid kis-form-grid-2">{% for field in form %}{% if field.name == 'threshold_preschool_10' %}{% with sector='preschool' %}<div class="kis-form-group" data-honor-sector="{{ sector }}"><label class="kis-label">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<small class="kis-text-danger">{{ error }}</small>{% endfor %}</div>{% endwith %}{% elif field.name == 'threshold_f1_10' %}{% with sector='fundamental_1' %}<div class="kis-form-group" data-honor-sector="{{ sector }}"><label class="kis-label">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<small class="kis-text-danger">{{ error }}</small>{% endfor %}</div>{% endwith %}{% elif field.name == 'threshold_f2_20' %}{% with sector='fundamental_2' %}<div class="kis-form-group" data-honor-sector="{{ sector }}"><label class="kis-label">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<small class="kis-text-danger">{{ error }}</small>{% endfor %}</div>{% endwith %}{% elif field.name == 'threshold_high_20' %}{% with sector='high_school' %}<div class="kis-form-group" data-honor-sector="{{ sector }}"><label class="kis-label">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<small class="kis-text-danger">{{ error }}</small>{% endfor %}</div>{% endwith %}{% elif field.name == 'threshold_voc_20' %}{% with sector='vocational' %}<div class="kis-form-group" data-honor-sector="{{ sector }}"><label class="kis-label">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<small class="kis-text-danger">{{ error }}</small>{% endfor %}</div>{% endwith %}{% endif %}{% endfor %}</div></section>
+
+<section class="kis-bootstrap-card">
+<div class="kis-bootstrap-card-header"><div><h2>Frais de base</h2><p>Ces deux frais sont appliqués <strong>automatiquement à toute nouvelle inscription</strong>. Une exonération ou réduction se fait ensuite par une remise.</p></div></div>
+<div class="kis-finance-base-table">
+<div class="kis-finance-base-head"><span>Secteur</span><span>Inscription</span><span>Scolarité</span></div>
+{% for row in base_fee_rows %}<div class="kis-finance-base-row" data-fee-sector="{{ row.school_type }}"{% if row.school_type not in enabled_types %} hidden{% endif %}><strong>{{ row.label }}</strong><div class="kis-form-group">{{ row.registration }}{% for error in row.registration.errors %}<small class="kis-text-danger">{{ error }}</small>{% endfor %}<details class="kis-fee-parts"{% if row.has_parts or row.registration.errors %} open{% endif %}><summary>Détailler en postes (facultatif)</summary><p class="kis-text-muted">Le parent paie un seul montant et reçoit un seul reçu ; KIS suit en interne ce qui est réglé (ex. inscription, manuel, uniformes). Le total doit être égal au montant de l'inscription. Modifiable plus tard dans Finance → Frais.</p>{% for name, amount in row.parts %}<div class="kis-fee-part">{{ name }}{{ amount }}</div>{% endfor %}</details></div><div class="kis-form-group">{{ row.tuition }}{% for error in row.tuition.errors %}<small class="kis-text-danger">{{ error }}</small>{% endfor %}</div></div>{% endfor %}
+</div>
+</section>
+
+<section class="kis-bootstrap-card">
+<div class="kis-bootstrap-card-header"><div><h2>Options financières</h2><p>Ajoutez uniquement les suppléments ou différences particulières dont votre établissement a besoin.</p></div><button type="button" class="kis-btn kis-btn-sm kis-btn-primary" id="kis-open-option">+ Ajouter une option</button></div>
+{{ option_formset.management_form }}
+<div id="kis-option-rows">
+{% for option_form in option_formset %}<div class="kis-option-summary" data-option-row="{{ forloop.counter0 }}"><strong>{{ option_form.name.value }}</strong><span>{{ option_form.amount.value }} {{ form.currency.value|default:'FCFA' }}</span>{{ option_form.DELETE.as_hidden }}{{ option_form.name.as_hidden }}{{ option_form.amount.as_hidden }}</div>{% endfor %}
+</div>
+<div id="kis-no-options"{% if option_formset|length %} hidden{% endif %} class="kis-empty-state">Aucune option configurée.</div>
+</section>
+
+<div id="kis-option-modal" class="kis-modal" hidden>
+<div class="kis-modal-backdrop" data-close-option></div>
+<div class="kis-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="kis-option-title">
+<div class="kis-modal-header"><div><h2 id="kis-option-title">Ajouter une option financière</h2><p>Cette option sera disponible lors des inscriptions.</p></div><button type="button" class="kis-modal-close" data-close-option>×</button></div>
+<div class="kis-modal-body"><div class="kis-form-grid kis-form-grid-2"><div class="kis-form-group"><label class="kis-label" for="kis-option-name">Nom de l'option *</label><input id="kis-option-name" type="text" maxlength="100"></div><div class="kis-form-group"><label class="kis-label" for="kis-option-amount">Montant *</label><input id="kis-option-amount" type="number" min="0" step="1"></div></div><small id="kis-option-error" class="kis-text-danger" hidden></small></div>
+<div class="kis-modal-footer"><button type="button" class="kis-btn" data-close-option>Annuler</button><button type="button" class="kis-btn kis-btn-primary" id="kis-save-option">Ajouter</button></div>
+</div></div>
+
+<div class="kis-bootstrap-actions"><div class="kis-form-actions-note"><span class="kis-info-dot">i</span>Les frais de base sont générés automatiquement à l'inscription. Les options ne sont ajoutées que lorsqu'elles sont sélectionnées pour l'élève.</div><button class="kis-btn kis-btn-primary kis-btn-lg" type="submit">Terminer la configuration <span>✓</span></button></div>
+</form></div>
+
+<script>
+(function(){
+  function updateInitialConfiguration(){
+    var selected=document.querySelector('input[name="license_level"]:checked'); var level=selected?selected.value:'';
+    var secondary=document.getElementById('kis-secondary-choice'), secondarySelect=document.getElementById('id_secondary_choice'), cap=document.getElementById('kis-field-cap_name');
+    var showSecondary=(level==='2'), showCap=(level==='1' || level==='4');
+    if(secondary) secondary.hidden=!showSecondary; if(secondarySelect){secondarySelect.disabled=!showSecondary;if(!showSecondary)secondarySelect.value='';} if(cap)cap.hidden=!showCap;
+    var visibleSectors=[];
+    if(level==='1') visibleSectors=['preschool','fundamental_1','fundamental_2'];
+    else if(level==='2' && secondarySelect && secondarySelect.value) visibleSectors=[secondarySelect.value];
+    else if(level==='3') visibleSectors=['high_school','vocational'];
+    else if(level==='4') visibleSectors=['preschool','fundamental_1','fundamental_2','high_school','vocational'];
+    document.querySelectorAll('[data-fee-sector]').forEach(function(row){row.hidden=visibleSectors.indexOf(row.getAttribute('data-fee-sector'))===-1;});
+    var honorSectors = visibleSectors.slice();
+    document.querySelectorAll('[data-honor-sector]').forEach(function(row){row.hidden=honorSectors.indexOf(row.getAttribute('data-honor-sector'))===-1;});
+  }
+  document.querySelectorAll('input[name="license_level"]').forEach(function(input){input.addEventListener('change',updateInitialConfiguration);});
+  var secondarySelect=document.getElementById('id_secondary_choice'); if(secondarySelect) secondarySelect.addEventListener('change',updateInitialConfiguration); updateInitialConfiguration();
+
+  var modal=document.getElementById('kis-option-modal'), open=document.getElementById('kis-open-option'), save=document.getElementById('kis-save-option');
+  var nameInput=document.getElementById('kis-option-name'), amountInput=document.getElementById('kis-option-amount'), error=document.getElementById('kis-option-error');
+  var container=document.getElementById('kis-option-rows'), total=document.getElementById('id_options-TOTAL_FORMS'), empty=document.getElementById('kis-no-options');
+  function closeModal(){modal.hidden=true; nameInput.value=''; amountInput.value=''; error.hidden=true;}
+  open.addEventListener('click',function(){modal.hidden=false; nameInput.focus();});
+  document.querySelectorAll('[data-close-option]').forEach(function(el){el.addEventListener('click',closeModal);});
+  save.addEventListener('click',function(){
+    var name=nameInput.value.trim(), amount=amountInput.value;
+    if(!name || amount===''){error.textContent='Le nom et le montant sont obligatoires.';error.hidden=false;return;}
+    var index=parseInt(total.value,10), row=document.createElement('div'); row.className='kis-option-summary';
+    row.innerHTML='<strong></strong><span></span><input type="hidden" name="options-'+index+'-name"><input type="hidden" name="options-'+index+'-amount">';
+    row.querySelector('strong').textContent=name; row.querySelector('span').textContent=amount+' '+(document.getElementById('id_currency')?.value || 'FCFA');
+    row.querySelector('input[name$="-name"]').value=name; row.querySelector('input[name$="-amount"]').value=amount;
+    container.appendChild(row); total.value=index+1; empty.hidden=true; closeModal();
+  });
+})();
+</script>
+{% endblock %}

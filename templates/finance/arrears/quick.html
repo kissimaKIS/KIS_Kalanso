@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Saisie rapide des reliquats — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header"><div><h1>Saisie rapide des reliquats</h1><p>Recopiez les reliquats d'un cahier ou d'un registre, classe par classe : une case par élève.</p></div></div>
+  <div class="kis-card" style="margin-bottom:16px"><div class="kis-card-body">
+    <form method="get" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+      <div class="kis-form-group" style="margin:0"><label>Classe (année en cours)</label><select class="kis-input" name="classe" required><option value="">— Choisir —</option>{% for c in classes %}<option value="{{ c.id }}" {% if classe and c.id == classe.id %}selected{% endif %}>{{ c.display_name }}</option>{% endfor %}</select></div>
+      <div class="kis-form-group" style="margin:0"><label>Année du reliquat</label><select class="kis-input" name="annee" required><option value="">— Choisir —</option>{% for value, label in years %}<option value="{{ value }}" {% if value == year_raw %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+      <button class="kis-btn" type="submit">Afficher les élèves</button>
+    </form>
+  </div></div>
+  {% if error %}<div class="kis-alert kis-alert-danger">{{ error }}</div>{% endif %}
+  {% if classe %}
+  <form method="post" class="kis-card"><div class="kis-card-body">{% csrf_token %}
+    <input type="hidden" name="classe" value="{{ classe.id }}"><input type="hidden" name="annee" value="{{ year_raw }}">
+    <table class="kis-table"><thead><tr><th>Élève</th><th>Reliquat ({{ school.currency }})</th></tr></thead><tbody>
+    {% for row in rows %}<tr><td>{{ row.student.last_name }} {{ row.student.first_name }}{% if row.student.matricule %} <span class="kis-text-muted">({{ row.student.matricule }})</span>{% endif %}</td>
+      <td>{% if row.existing %}{{ row.existing.total_amount|floatformat:"0g" }} <span class="kis-text-muted">déjà enregistré{% if row.existing.paid_amount %}, {{ row.existing.paid_amount|floatformat:"0g" }} payé{% endif %}</span>{% else %}<input class="kis-input" style="width:140px" inputmode="numeric" name="amount_{{ row.student.id }}" value="{{ row.posted }}">{% endif %}</td></tr>
+    {% empty %}<tr><td colspan="2">Aucun élève dans cette classe.</td></tr>{% endfor %}
+    </tbody></table>
+    <p class="kis-text-muted">Laissez vide les élèves qui ne doivent rien. Pour corriger un reliquat déjà enregistré, passez par la fiche de l'élève.</p>
+    <button class="kis-btn kis-btn-primary" type="submit">Enregistrer les reliquats</button>
+  </div></form>
+  {% endif %}
+</div>
+{% endblock %}

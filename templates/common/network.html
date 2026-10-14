@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Réseau local — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header"><div><h1>Réseau local</h1><p>Utiliser KIS Kalanso sur plusieurs ordinateurs et téléphones de l'école, avec une seule base.</p></div></div>
+
+  <div class="kis-card" style="margin-bottom:16px"><div class="kis-card-body">
+    <form method="post" style="display:grid;gap:12px">{% csrf_token %}
+      <label class="kis-card" style="padding:14px;display:flex;gap:12px;align-items:flex-start;cursor:pointer">
+        <input type="radio" name="mode" value="local" {% if config.mode == "local" %}checked{% endif %}>
+        <span><strong>Ce poste uniquement</strong><br><span class="kis-text-muted">KIS n'est accessible que sur cet ordinateur. Fermer la fenêtre arrête l'application.</span></span>
+      </label>
+      <label class="kis-card" style="padding:14px;display:flex;gap:12px;align-items:flex-start;cursor:pointer">
+        <input type="radio" name="mode" value="server" {% if config.mode == "server" %}checked{% endif %}>
+        <span><strong>Serveur de l'école (réseau local)</strong><br><span class="kis-text-muted">Ce poste garde la base. Les autres ordinateurs, tablettes et téléphones connectés au même Wi-Fi ou au même câble réseau ouvrent KIS dans leur navigateur, chacun avec son compte et son rôle. Fermer la fenêtre sur ce poste ne coupe pas les autres ; laissez ce poste allumé pendant la journée.</span></span>
+      </label>
+      <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+        <div class="kis-form-group" style="margin:0"><label>Port</label><input class="kis-input" name="port" type="number" min="1024" max="65535" value="{{ config.port }}" style="width:120px"></div>
+        <button class="kis-btn kis-btn-primary" type="submit">Enregistrer</button>
+        <span class="kis-text-muted">Le changement s'applique au prochain démarrage de KIS Kalanso sur ce poste.</span>
+      </div>
+    </form>
+  </div></div>
+
+  {% if config.mode == "server" %}
+  <div class="kis-card" style="margin-bottom:16px"><div class="kis-card-header"><strong>Adresse à ouvrir sur les autres postes</strong></div><div class="kis-card-body">
+    {% for a in addresses %}
+    <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+      <div style="background:#fff;padding:6px;border:1px solid #E2E8F0;border-radius:8px">{{ a.qr|safe }}</div>
+      <div>
+        <div style="font-size:1.4rem;font-weight:700">{{ a.url }}</div>
+        {% if a.reachable %}<div class="kis-badge kis-badge-success" style="margin-top:4px">✓ KIS répond à cette adresse sur ce poste</div>
+        {% else %}<div class="kis-alert kis-alert-danger" style="margin:6px 0">KIS n'écoute pas encore sur le réseau : fermez complètement KIS Kalanso sur ce poste puis rouvrez-le pour appliquer le mode serveur.</div>{% endif %}
+        <p class="kis-text-muted" style="margin:6px 0">Sur un ordinateur : tapez cette adresse dans Chrome, Edge ou Firefox, ou copiez le raccourci sur son bureau.<br>Sur un téléphone : scannez le QR code avec l'appareil photo.</p>
+        <a class="kis-btn kis-btn-sm" href="{% url 'network_shortcut' %}?ip={{ a.ip }}">Télécharger le raccourci « KIS Kalanso » pour les autres postes</a>
+      </div>
+    </div>
+    {% empty %}<p>Ce poste n'est connecté à aucun réseau : branchez-le au Wi-Fi ou au câble de l'école.</p>{% endfor %}
+    <div class="kis-alert kis-alert-info" style="margin:8px 0 0">
+      <strong>Si KIS répond ici mais pas depuis un téléphone ou un autre poste :</strong>
+      <ol style="margin:6px 0 6px 18px;padding:0">
+        <li>Vérifiez que le téléphone est sur <strong>le même Wi-Fi</strong> que ce poste (pas les données mobiles, pas un réseau « invité »).</li>
+        <li>Pare-feu Windows : réinstallez KIS avec la dernière version de l'installateur (il autorise KIS pour les appareils du réseau local), ou dans <em>Pare-feu Windows → Autoriser une application</em>, cochez « KIS Kalanso » pour <strong>Privé et Public</strong>. Si une ligne « KIS Kalanso » est bloquée (refus lors d'une alerte du pare-feu), supprimez-la.</li>
+        <li>Dans le navigateur du téléphone, tapez l'adresse complète avec <strong>http://</strong> et le port <strong>:{{ config.port }}</strong>.</li>
+      </ol>
+      Pour garder la même adresse tous les jours, demandez à la personne qui gère le Wi-Fi de réserver l'adresse de ce poste dans la box ou le routeur.
+    </div>
+  </div></div>
+  {% if frozen %}<form method="post" action="{% url 'network_stop' %}" onsubmit="return confirm('Arrêter KIS Kalanso sur ce poste ? Les autres postes n\'y auront plus accès.');">{% csrf_token %}<button class="kis-btn kis-btn-danger-soft" type="submit">Arrêter le serveur KIS Kalanso</button></form>{% endif %}
+  {% endif %}
+</div>
+{% endblock %}

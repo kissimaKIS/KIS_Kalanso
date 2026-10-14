@@ -1,0 +1,3 @@
+from django.urls import path
+from .views import announcement_list, announcement_create, announcement_update, announcement_delete, announcement_pdf, announcement_whatsapp
+urlpatterns=[path("communication/",announcement_list,name="announcement_list"),path("communication/add/",announcement_create,name="announcement_create"),path("communication/<int:pk>/modifier/",announcement_update,name="announcement_update"),path("communication/<int:pk>/delete/",announcement_delete,name="announcement_delete"),path("communication/<int:pk>/pdf/",announcement_pdf,name="announcement_pdf"),path("communication/<int:pk>/whatsapp/",announcement_whatsapp,name="announcement_whatsapp")]

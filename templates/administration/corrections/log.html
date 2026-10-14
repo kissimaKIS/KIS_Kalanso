@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Journal des corrections — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header"><div><h1>Journal des corrections</h1><p>Annulations, suppressions et changements de classe faits par la direction, avec leur motif.</p></div></div>
+  <div class="kis-card"><div class="kis-card-body">
+    <form method="get" style="display:flex;gap:8px;margin-bottom:12px"><select name="action" class="kis-input" style="max-width:280px" onchange="this.form.submit()"><option value="">Toutes les corrections</option>{% for v, l in actions %}<option value="{{ v }}" {% if v == action %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></form>
+    <table class="kis-table"><thead><tr><th>Date</th><th>Action</th><th>Élève</th><th>Détail</th><th>Montant</th><th>Motif</th><th>Par</th></tr></thead><tbody>
+    {% for log in page_obj %}<tr><td>{{ log.created_at|date:"d/m/Y H:i" }}</td><td>{{ log.get_action_display }}</td><td>{{ log.student_label }}</td><td>{{ log.description }}</td><td>{{ log.amount|default_if_none:""|floatformat:"0g" }}</td><td>{{ log.reason }}</td><td>{{ log.user|default:"—" }}</td></tr>
+    {% empty %}<tr><td colspan="7">Aucune correction enregistrée.</td></tr>{% endfor %}
+    </tbody></table>
+    {% include "components/pagination.html" %}
+  </div></div>
+</div>
+{% endblock %}

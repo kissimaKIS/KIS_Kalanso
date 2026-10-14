@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div><h1>Matières maîtrisées</h1><p>{{ teacher }}</p></div>
+    
+  </div>
+  <div class="kis-card" style="margin-bottom:18px">
+    <div class="kis-card-body">
+      <h2 class="h5">Ajouter une matière</h2>
+      <form method="post">
+        {% csrf_token %}
+        {% for f in form %}<div class="kis-form-group"><label>{{ f.label }}</label>{{ f }}{{ f.errors }}</div>{% endfor %}
+        <button class="kis-btn kis-btn-primary" type="submit">Ajouter</button>
+      </form>
+    </div>
+  </div>
+  <div class="kis-card">
+    <div class="kis-card-body">
+      <table class="kis-table"><thead><tr><th>Matière</th><th>État</th><th></th></tr></thead><tbody>
+      {% for link in subjects %}
+        <tr><td>{{ link.subject.name }}</td><td>{{ link.is_active|yesno:"Active,Inactive" }}</td><td><form method="post" action="{% url 'teacher_subject_delete' link.id %}">{% csrf_token %}<button class="kis-btn kis-btn-sm">Retirer</button></form></td></tr>
+      {% empty %}<tr><td colspan="3">Aucune matière déclarée.</td></tr>{% endfor %}
+      </tbody></table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Sauvegardes — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div>
+      <h1>Sauvegardes</h1>
+      <p>Toutes les données de l'établissement (base et photos) dans un seul fichier.</p>
+    </div>
+    <form method="post" action="{% url 'backup_create' %}">
+      {% csrf_token %}
+      <button class="kis-btn kis-btn-primary" type="submit">Sauvegarder maintenant</button>
+    </form>
+  </div>
+
+  <div class="kis-grid kis-grid-2" style="margin-bottom:16px">
+    <div class="kis-card">
+      <div class="kis-card-header"><strong>Sauvegarde automatique</strong></div>
+      <div class="kis-card-body">
+        <p style="margin-top:0">KIS Kalanso se sauvegarde tout seul à l'ouverture, puis toutes les 24 heures tant qu'il reste ouvert. Les {{ auto_keep }} dernières sauvegardes automatiques sont gardées ; les sauvegardes manuelles ne sont jamais effacées.</p>
+        {% if last_auto %}
+          <p><strong>Dernière sauvegarde automatique :</strong> {{ last_auto.created_at|date:"d/m/Y à H:i" }}</p>
+        {% else %}
+          <p><strong>Aucune sauvegarde automatique pour le moment.</strong> La première sera faite au prochain lancement de l'application.</p>
+        {% endif %}
+        <p class="kis-text-muted" style="margin-bottom:0">Dossier : {{ backup_folder }}</p>
+      </div>
+    </div>
+    <div class="kis-card">
+      <div class="kis-card-header"><strong>Copie sur une clé USB ou un disque externe</strong></div>
+      <div class="kis-card-body">
+        <p style="margin-top:0">Si l'ordinateur tombe en panne, les sauvegardes qu'il contient sont perdues avec lui. Indiquez un dossier sur un autre support : chaque sauvegarde y sera aussi copiée quand il est branché.</p>
+        <form method="post" action="{% url 'backup_settings' %}" class="kis-form-row">
+          {% csrf_token %}
+          <input class="kis-input" type="text" name="copy_dir" value="{{ copy_dir }}" placeholder="Ex. E:\ ou D:\Sauvegardes" style="flex:1">
+          <button class="kis-btn" type="submit">Enregistrer</button>
+        </form>
+        <p class="kis-text-muted" style="margin-bottom:0">Laisser vide pour désactiver la copie externe.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="kis-card" style="margin-bottom:16px">
+    <div class="kis-card-header"><strong>Sauvegardes disponibles</strong></div>
+    <div class="kis-card-body">
+      <table class="kis-table">
+        <thead><tr><th>Date</th><th>Type</th><th>Taille</th><th>Actions</th></tr></thead>
+        <tbody>
+        {% for item in backups %}
+          <tr>
+            <td><strong>{{ item.created_at|date:"d/m/Y H:i:s" }}</strong></td>
+            <td><span class="kis-badge{% if item.kind == 'manuel' %} kis-badge-success{% endif %}">{{ item.kind_label }}</span></td>
+            <td>{{ item.size|filesizeformat }}</td>
+            <td>
+              <a class="kis-btn kis-btn-sm" href="{% url 'backup_download' item.name %}">Télécharger</a>
+              <form method="post" action="{% url 'backup_restore' item.name %}" style="display:inline" onsubmit="var w=prompt('Toutes les données actuelles seront remplacées par celles du {{ item.created_at|date:"d/m/Y à H:i" }}.\nUne sauvegarde de l\'état actuel est faite avant.\n\nTapez {{ confirm_word }} pour confirmer :');if(!w){return false;}this.confirm.value=w;return true;">
+                {% csrf_token %}
+                <input type="hidden" name="confirm" value="">
+                <button class="kis-btn kis-btn-sm kis-btn-danger" type="submit">Restaurer</button>
+              </form>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="4">Aucune sauvegarde pour le moment.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="kis-card">
+    <div class="kis-card-header"><strong>Restaurer depuis un fichier</strong></div>
+    <div class="kis-card-body">
+      <p style="margin-top:0">Pour récupérer les données sur un nouvel ordinateur, ou depuis une clé USB : choisissez un fichier de sauvegarde KIS Kalanso (.zip). Les données actuelles seront remplacées ; une sauvegarde de l'état actuel est faite avant.</p>
+      <form method="post" action="{% url 'backup_restore_upload' %}" enctype="multipart/form-data" class="kis-form-row">
+        {% csrf_token %}
+        <input class="kis-input" type="file" name="archive" accept=".zip" required>
+        <input class="kis-input" type="text" name="confirm" placeholder="Tapez {{ confirm_word }}" required autocomplete="off">
+        <button class="kis-btn kis-btn-danger" type="submit">Restaurer ce fichier</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

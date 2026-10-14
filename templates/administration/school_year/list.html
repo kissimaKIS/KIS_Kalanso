@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Année scolaire — KIS Kalanso{% endblock %}
+{% block content %}
+<div class="kis-page">
+    <div class="kis-page-header">
+        <div>
+            <h1>Année scolaire</h1>
+            <p>{{ school.name }} — gestion explicite des années scolaires de l'établissement.</p>
+        </div>
+        {% if not creation_blocker %}
+            <a class="kis-btn kis-btn-primary" href="{% url 'school_year_create' %}">Nouvelle année</a>
+        {% else %}
+            <span class="kis-btn" style="opacity:.55;cursor:not-allowed" title="{{ creation_blocker }}">Nouvelle année</span>
+        {% endif %}
+    </div>
+
+    {% if years %}
+    <div class="kis-card" style="margin-bottom:18px">
+        <div class="kis-card-body">
+            <strong>Fonctionnement</strong>
+            <p class="kis-text-muted" style="margin:6px 0 0">Une nouvelle année ne peut être créée que lorsque la précédente est terminée : elle doit être clôturée, et la nouvelle doit commencer après sa date de fin. Les années clôturées restent consultables (élèves, certificats, relevés, bulletins). KIS ne crée jamais automatiquement l'année suivante.</p>
+            {% if creation_blocker %}<p style="margin:8px 0 0"><strong>{{ creation_blocker }}</strong></p>{% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="kis-card">
+        <div class="kis-card-body">
+            <table class="kis-table">
+                <thead>
+                    <tr>
+                        <th>Année</th>
+                        <th>Période</th>
+                        <th>Établissement</th>
+                        <th>État</th>
+                        <th>Niveaux ouverts</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for y in years %}
+                    <tr>
+                        <td><strong>{{ y.name }}</strong></td>
+                        <td>{{ y.start_date|date:"d/m/Y" }} → {{ y.end_date|date:"d/m/Y" }}</td>
+                        <td>{{ y.school.name }}</td>
+                        <td>
+                            {% if y.is_closed %}
+                                <span class="kis-badge kis-badge-danger">Clôturée</span>
+                            {% elif y.is_active %}
+                                <span class="kis-badge kis-badge-success">Active</span>
+                            {% else %}
+                                <span class="kis-badge">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ y.open_level_count }}</td>
+                        <td>
+                            <a class="kis-btn kis-btn-sm" href="{% url 'school_year_catalog' y.id %}">Référentiel</a>
+                            {% if not y.is_active and not y.is_closed %}
+                                <form method="post" action="{% url 'school_year_activate' y.id %}" style="display:inline" onsubmit="return confirm('Activer l’année scolaire {{ y.name }} ? L’année actuellement active sera désactivée.');">
+                                    {% csrf_token %}
+                                    <button class="kis-btn kis-btn-sm" type="submit">Activer</button>
+                                </form>
+                            {% endif %}
+                            {% if y.is_active and not y.is_closed %}
+                                <form method="post" action="{% url 'school_year_close' y.id %}" style="display:inline" onsubmit="return confirm('Clôturer définitivement l’année scolaire {{ y.name }} ?');">
+                                    {% csrf_token %}
+                                    <button class="kis-btn kis-btn-sm kis-btn-danger" type="submit">Clôturer</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6">Aucune année scolaire. Créez explicitement la première année pour commencer.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

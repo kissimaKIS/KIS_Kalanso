@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="kis-page">
+  <div class="kis-page-header">
+    <div><h1>Proposition de passage — {{ classe.display_name }}</h1><p>{{ passage.source_year.name }} · {{ passage.get_status_display }}</p></div>
+    <a class="kis-btn" target="_blank" href="{% url 'passage_print' passage.id %}">PDF / Imprimer</a>
+  </div>
+
+  {% if passage.status == 'PREPARATION' %}
+  <form method="post">{% csrf_token %}
+  {% elif passage.status == 'CAP_DECIDED' %}
+  <form method="post" action="{% url 'passage_director_validate' passage.id %}">{% csrf_token %}
+  {% endif %}
+  <div class="kis-card"><div class="kis-card-body" style="overflow:auto">
+    <table class="kis-table">
+      <thead><tr><th>N°</th><th>Prénoms et noms</th><th>Date naiss.</th><th>Date entrée</th><th>N° Mle</th><th>Classe(s) doublée(s)</th><th>Moyenne annuelle</th><th>Décision</th><th>Observation</th></tr></thead>
+      <tbody>
+      {% for row in rows %}
+      <tr>
+        <td>{{ forloop.counter }}</td><td><strong>{{ row.enrollment.student.first_name }} {{ row.enrollment.student.last_name }}</strong></td>
+        <td>{{ row.enrollment.student.date_of_birth|date:"d/m/Y" }}</td><td>{{ row.enrollment.enrollment_date|date:"d/m/Y" }}</td><td>{{ row.enrollment.student.matricule }}</td>
+        <td>{% for old in row.doubled %}{{ old.classe.display_name }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+        <td>{{ row.annual_average|default_if_none:""|floatformat:2 }}</td>
+        <td>
+        {% if passage.status == 'PREPARATION' %}<select name="proposal_{{ row.line.id }}"><option value="PENDING" {% if row.line.proposal_decision == 'PENDING' %}selected{% endif %}>À décider</option><option value="PASSANT" {% if row.line.proposal_decision == 'PASSANT' %}selected{% endif %}>Passant</option><option value="REDOUBLANT" {% if row.line.proposal_decision == 'REDOUBLANT' %}selected{% endif %}>Redoublant</option><option value="EXCLU" {% if row.line.proposal_decision == 'EXCLU' %}selected{% endif %}>Exclu</option></select>
+        {% elif passage.status == 'CAP_DECIDED' %}<select name="director_{{ row.line.id }}"><option value="PENDING" {% if row.line.director_decision == 'PENDING' %}selected{% endif %}>À décider</option><option value="PASSANT" {% if row.line.director_decision == 'PASSANT' %}selected{% endif %}>Passant</option><option value="REDOUBLANT" {% if row.line.director_decision == 'REDOUBLANT' %}selected{% endif %}>Redoublant</option><option value="EXCLU" {% if row.line.director_decision == 'EXCLU' %}selected{% endif %}>Exclu</option></select>{% else %}{{ row.line.get_director_decision_display }}{% endif %}
+        </td>
+        <td>{% if passage.status == 'CAP_DECIDED' %}<input class="kis-input" name="observation_{{ row.line.id }}" value="{{ row.line.observation }}">{% else %}{{ row.line.observation }}{% endif %}</td>
+      </tr>
+      {% empty %}<tr><td colspan="9">Aucun élève dans cette classe.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div></div>
+  {% if passage.status == 'PREPARATION' %}<div style="margin-top:14px"><button class="kis-btn kis-btn-primary" type="submit">Enregistrer la proposition du conseil</button></div></form>
+  <form method="post" action="{% url 'passage_cap_decide' passage.id %}" style="margin-top:10px">{% csrf_token %}
+    <div class="kis-card"><div class="kis-card-body"><strong>Après la réunion du CAP</strong><p class="kis-dashboard-muted">Renseigner ici la décision réellement prise par le CAP.</p>
+    {% for row in rows %}<div style="margin:6px 0"><span style="display:inline-block;min-width:260px">{{ row.enrollment.student.first_name }} {{ row.enrollment.student.last_name }}</span><select name="cap_{{ row.line.id }}"><option value="PENDING">À décider</option><option value="PASSANT">Passant</option><option value="REDOUBLANT">Redoublant</option><option value="EXCLU">Exclu</option></select></div>{% endfor %}
+    </div></div>
+    <button class="kis-btn" type="submit" style="margin-top:10px">Enregistrer la décision du CAP</button>
+  </form>
+  {% elif passage.status == 'CAP_DECIDED' %}<div style="margin-top:14px"><button class="kis-btn kis-btn-primary" type="submit">Corriger et valider par le Directeur</button></div></form>{% endif %}
+</div>
+{% endblock %}

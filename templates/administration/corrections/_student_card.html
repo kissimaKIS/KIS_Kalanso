@@ -1,0 +1,4 @@
+<table class="kis-table"><tbody>{% for label, value in c.fields %}<tr><th style="width:40%">{{ label }}</th><td>{{ value }}</td></tr>{% endfor %}
+<tr><th>Inscriptions</th><td>{% for e in c.enrollments %}{{ e }}{% if not forloop.last %}<br>{% endif %}{% empty %}—{% endfor %}</td></tr>
+<tr><th>Factures / paiements</th><td>{{ c.invoices }} / {{ c.payments }}</td></tr></tbody></table>
+<a class="kis-btn kis-btn-sm" href="{% url 'student_detail' c.student.id %}" target="_blank">Ouvrir la fiche</a>

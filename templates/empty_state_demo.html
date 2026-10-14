@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% include "components/feedback/empty_state.html" with
+
+icon="users"
+
+title="Aucun élève"
+
+message="Commencez par créer votre premier élève."
+
+button_text="Ajouter un élève"
+
+button_url="#"
+
+%}
+
+{% endblock %}
